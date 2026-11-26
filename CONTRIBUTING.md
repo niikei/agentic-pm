@@ -37,6 +37,27 @@ the workspace formatter on save. Use Mermaid for small embedded diagrams and
 D2 source for complex architecture diagrams. Preview diagram changes when
 reviewing their meaning.
 
+## Drafting an issue with Copilot
+
+In [Copilot Chat on GitHub](https://github.com/copilot), name the repository,
+the intended user, and the observable outcome. For example, after checking
+for an existing issue, a maintainer could enter this request:
+
+> In niikei/agentic-pm, draft a Project task to recheck the KaTeX advisory in
+> markdownlint's dependency tree. Include the installed dependency path, the
+> upstream version constraint, and how to verify a compatible update. Leave
+> the assignee and deadline empty.
+
+Compare the draft with the source evidence. Edit the title, outcome, acceptance
+criteria, and any suggested metadata before publishing. If a task already
+exists, update it. If the preview is unavailable, use **Issues → New issue →
+Project task**. Open the created issue and verify its Project and Status.
+The form requests Project membership, which depends on the submitter's access.
+A maintainer can add a missing item directly from the issue sidebar.
+
+GitHub documents the draft and review steps in its
+[Copilot issue creation guide](https://docs.github.com/en/copilot/how-tos/copilot-on-github/copilot-for-github-tasks/use-copilot-to-create-or-update-issues).
+
 ## Public review workflow
 
 ```mermaid
