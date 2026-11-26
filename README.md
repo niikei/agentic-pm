@@ -19,3 +19,9 @@ mise exec -- pnpm check
 ```
 
 See the [contributor guide](CONTRIBUTING.md) for tool decisions, commands, and the public review workflow.
+
+## Project management
+
+[Run a project cycle](docs/lifecycle.md) to generate a work breakdown with
+Copilot, organize the issues in GitHub Projects, record a replan, and produce
+a progress report from the live milestone.
