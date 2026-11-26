@@ -13,9 +13,19 @@ shell, you can omit `mise exec --` from these commands.
 | `mise exec -- pnpm test`   | Run the Node test suite, including the frontmatter and Mermaid regression test.            |
 | `mise exec -- pnpm check`  | Verify formatting, lint, local links and anchors, staged and committed secrets, and tests. |
 
-Stage new files before the final check so Gitleaks scans their contents. CI
-fetches the full Git history. Lychee runs offline to keep PR results independent
-of external site availability. Open new external references when reviewing them.
+During development, run `pnpm lint` for fast feedback and `pnpm test` when
+changing behavior. Before publishing, stage new files and run `pnpm check` so
+Gitleaks sees staged content and committed history. Repeat after amending a
+commit. Every PR runs the same gate on Linux under **Repository checks**.
+Aim for five seconds locally and sixty seconds of runner time.
+
+For a toolchain update or an external reference change, run `pnpm check`
+and `pnpm check:online` on demand. **Actions → Quality → Run workflow** runs
+both on macOS arm64. Online validation checks external links and runs the
+registry dependency audit, failing on high or critical advisories. Local mise
+and pnpm reuse their stores. In the first two Linux runs, tool and dependency
+setup took 3–5 seconds combined. Revisit remote caches if setup becomes a
+bottleneck. [Timing measurements](https://github.com/niikei/agentic-pm/issues/1#issuecomment-7198966797).
 
 Pin tools in `mise.toml` and regenerate `mise.lock` with `mise lock`. Pin
 JavaScript dependencies in `package.json` and refresh `pnpm-lock.yaml` with
@@ -95,6 +105,15 @@ for status, milestones for agreed phases, and GitHub's sub-issue and dependency
 relationships when work needs to be split or sequenced. Keep progress and
 recovery notes on the issue. Include the branch, PR, last verified result,
 blocker, and next action when handing over a long-running task.
+
+After opening a PR, continue independent work on a separate branch when
+needed. Use issue dependencies to identify what can proceed. Revisit failed
+checks and fix actionable failures before merge.
+
+For a solo maintainer, the recommended protection for `main` is to require a
+PR and the **Repository checks** status, with zero required approving reviews.
+The maintainer makes the merge decision. Keep force pushes and branch deletion
+disabled. Changes to repository protection require explicit human approval.
 
 Link the issue from the PR with `Closes #<number>`. Describe what changed and
 how a reviewer can reproduce the result. Distinguish verified results,

@@ -23,7 +23,7 @@ public records. Use synthetic examples for demonstrations.
 ## Human approval
 
 Obtain explicit human approval before merging into the default branch,
-publishing a release, changing the license or repository visibility,
+publishing a release, changing the license, repository visibility, or branch protection,
 changing approved scope or deadlines, deleting repositories, projects,
 branches, or significant records, adding collaborators, or granting
 permissions. Respect required checks and approvals. Continue independent

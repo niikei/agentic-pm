@@ -7,9 +7,10 @@
   },
   "scripts": {
     "format": "biome format --write .",
-    "lint": "biome lint --error-on-warnings . && markdownlint-cli2 && actionlint -shellcheck= -pyflakes= && zizmor --offline .github/workflows",
+    "lint": "biome check --error-on-warnings . && markdownlint-cli2 && actionlint -shellcheck= -pyflakes= && zizmor --offline .github/workflows",
     "test": "node --test",
-    "check": "biome format . && pnpm run lint && lychee --offline --include-fragments --hidden . && gitleaks git --redact && gitleaks git --pre-commit --staged --redact && pnpm run test"
+    "check": "pnpm run lint && lychee --offline --include-fragments --hidden . && gitleaks git --redact && gitleaks git --pre-commit --staged --redact && pnpm run test",
+    "check:online": "lychee --exclude-all-private --include-fragments --hidden . && pnpm audit --audit-level high"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.9",
