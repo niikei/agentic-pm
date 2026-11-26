@@ -6,6 +6,7 @@ function page(numbers, totalCount = numbers.length) {
   return {
     data: {
       repository: {
+        id: "repo",
         visibility: "PUBLIC",
         owner: {
           projectV2: {
@@ -23,6 +24,10 @@ function page(numbers, totalCount = numbers.length) {
               url: `https://example.org/issues/${number}`,
               state: "OPEN",
               stateReason: null,
+              closedByPullRequestsReferences: {
+                nodes: [],
+                pageInfo: { hasNextPage: false },
+              },
               issueDependenciesSummary: { blockedBy: 0 },
               subIssuesSummary: { completed: 0, total: 0 },
               projectItems: { pageInfo: { hasNextPage: false }, nodes: [] },
@@ -66,6 +71,42 @@ test("counts paginated milestone issues once, including issues off the board", (
   assert.match(report, /Closed \(not planned\) \| Off board/);
   assert.match(report, /Blocker counts cover linked GitHub issues/);
   assert.doesNotMatch(report, /Unrelated/);
+});
+
+test("links open implementation PRs only from the reported repository", () => {
+  const input = page([1, 2]);
+  const [issue, other] = input.data.repository.milestone.issues.nodes;
+  const ready = {
+    repository: { id: "repo" },
+    number: 17,
+    url: "https://example.org/pull/17",
+    state: "OPEN",
+    isDraft: false,
+  };
+  const foreign = {
+    ...ready,
+    repository: { id: "other" },
+    url: "https://example.org/other/pull/17",
+  };
+  issue.closedByPullRequestsReferences.nodes = [
+    foreign,
+    ready,
+    { ...ready, number: 19, url: "https://example.org/pull/19", isDraft: true },
+  ];
+  issue.closedByPullRequestsReferences.pageInfo.hasNextPage = true;
+  other.closedByPullRequestsReferences.nodes = [
+    foreign,
+    { ...ready, state: "MERGED" },
+    { ...ready, state: "CLOSED" },
+  ];
+  const report = renderReport([input]);
+  assert.ok(
+    report.includes(
+      "[#17](https://example.org/pull/17), [#19](https://example.org/pull/19) (draft), [See issue](https://example.org/issues/1)",
+    ),
+  );
+  assert.doesNotMatch(report, /other\/pull/);
+  assert.ok(report.endsWith("| 0 | — | — |"));
 });
 
 test("refuses private inputs and incomplete pagination", () => {
