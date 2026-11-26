@@ -82,6 +82,8 @@ Each timing covers one whole successful command including local startup and netw
 
 The milestone flag takes the full title here. Trying the shorthand `v0.1` returned an empty issue list. The board's default limit is 30 and this CLI comparison explicitly capped both lists at 100. The candidate paginates milestone issues, checks repository/Project visibility on every page, verifies count and unique issue numbers, and identifies the Project by ID. It reports unknown membership when its membership page is truncated. It cannot guarantee a transactional snapshot if state changes between reads. A single CLI export matched the small live dataset, but replacing the publication path would require preserving those conditions and the closed-as-not-planned distinction. [Candidate source](https://github.com/niikei/agentic-pm/blob/32e2ccbcd5de33da8708992b458cd5c0385d7517/scripts/milestone-report.mjs)
 
+That last row exposed a presentation problem in a standalone snapshot. The PM guide PR adds a sentence explaining that blocker counts cover linked issues and that access or decisions can be pending. We ran the candidate and revised reporter against the live milestone in succession. Removing that one sentence and its blank line made the outputs byte-identical. [Report revision](https://github.com/niikei/agentic-pm/commit/21ad306)
+
 The earlier hosted digest run took ten seconds from run creation to last update and seven seconds from job start to completion. Its report step took four seconds. This is one observed event, with no measured event-to-run queue delay. A PM interested only in the current total can open the milestone directly. Network samples and Actions job duration do not measure the time it takes a person to understand a decision. [Run](https://github.com/niikei/agentic-pm/actions/runs/45870332516)
 
 ## First visit and return after an interruption
@@ -95,4 +97,16 @@ Give two fresh readers one entry point each, the [baseline README](https://githu
 
 Both recovered #6 as independent work, the successful comprehensive check at `32e2ccb`, and the maintainer as decision owner. Both reached the evidence within the cap. The readers used read-only proxies for browser pages. The baseline reader recovered from a local parser failure using the GitHub CLI. We separately fetched the public Project page without credentials and found the intake title and In Progress in its HTML. A human browser task, screen-reader experience, click latency, first-time sign-in and live issue submission remain unmeasured.
 
-The four commands in the candidate's setup block serve contributors. In the isolated worktree, all six pinned tools were already installed, and pnpm reused 90 packages with zero downloads. That warm start cannot estimate a new contributor's cold install cost. The guide change improves discoverability of an existing zero-install PM path. It does not reduce the measured install count below zero.
+The four commands in the candidate's setup block serve contributors. The browser guide makes the existing zero-install PM path easier to find. For a separate developer setup check, the six pinned tools were already installed. We measured two frozen installs in fresh directories on macOS arm64. With an empty pnpm store, pnpm downloaded all 90 packages in 2.18 seconds wall time. The second install reused 90 packages and finished in 0.11 seconds. Each result is one observation. Tool downloads, account setup and a new machine's first installation remain unmeasured.
+
+To repeat from the checkout, use one new temporary directory for both installs. Measure each pnpm invocation including process startup.
+
+```sh
+trial=$(mktemp -d)
+for pass in first second; do
+  mkdir "$trial/$pass"
+  git show 32e2ccb:package.json > "$trial/$pass/package.json"
+  git show 32e2ccb:pnpm-lock.yaml > "$trial/$pass/pnpm-lock.yaml"
+  time mise exec -- pnpm --dir "$trial/$pass" install --frozen-lockfile --store-dir "$trial/packages"
+done
+```
