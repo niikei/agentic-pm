@@ -57,6 +57,7 @@ test("counts paginated milestone issues once, including issues off the board", (
   );
   assert.match(report, /In Progress &#124; &#64;all \| 1 \| 1\/2/);
   assert.match(report, /Closed \(not planned\) \| Off board/);
+  assert.match(report, /Blocker counts cover linked GitHub issues/);
   assert.doesNotMatch(report, /Unrelated/);
 });
 

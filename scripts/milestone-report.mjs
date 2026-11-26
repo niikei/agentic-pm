@@ -66,6 +66,8 @@ export function renderReport(pages) {
     "",
     `**Open** ${issues.length - closed} · **Closed** ${closed} · **Open with blockers** ${blocked}`,
     "",
+    "Blocker counts cover linked GitHub issues. Open the issue for pending access or decisions.",
+    "",
     "| Issue | Issue state | Project status | Open blockers | Sub-issues completed |",
     "| --- | --- | --- | ---: | ---: |",
   ];
