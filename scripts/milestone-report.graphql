@@ -30,6 +30,7 @@ query MilestoneReport(
         }
         nodes {
           number
+          title
           url
           state
           stateReason
