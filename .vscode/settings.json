@@ -1,0 +1,12 @@
+{
+  "[markdown][yaml][json][jsonc][javascript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "files.associations": {
+    ".github/workflows/*.{yml,yaml}": "yaml",
+    "*.instructions.md": "markdown",
+    "*.agent.md": "markdown",
+    "*.prompt.md": "markdown"
+  }
+}

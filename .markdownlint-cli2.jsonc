@@ -1,0 +1,10 @@
+{
+  "globs": ["**/*.md", ".github/**/*.md"],
+  "gitignore": true,
+  "config": {
+    "MD013": false,
+    "MD024": { "siblings_only": false },
+    "MD025": { "front_matter_title": "" },
+    "MD041": { "front_matter_title": "" }
+  }
+}
