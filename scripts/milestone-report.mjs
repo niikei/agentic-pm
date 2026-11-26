@@ -1,6 +1,14 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
+// Keep user-authored text literal inside a Markdown table cell or link label.
+function markdownText(value) {
+  return value.replace(
+    /[^\p{L}\p{N} -]/gu,
+    (char) => `&#${char.codePointAt(0)};`,
+  );
+}
+
 function statusFor(issue, projectId) {
   const items = issue.projectItems;
   const item = items.nodes.find((entry) => entry.project.id === projectId);
@@ -9,12 +17,7 @@ function statusFor(issue, projectId) {
       ? "Unknown (more memberships)"
       : "Off board";
   const status = item.fieldValueByName?.name;
-  if (!status) return "Unset";
-  // Keep a Project field value inside one literal Markdown table cell.
-  return status.replace(
-    /[^\p{L}\p{N} -]/gu,
-    (char) => `&#${char.codePointAt(0)};`,
-  );
+  return status ? markdownText(status) : "Unset";
 }
 
 export function renderReport(pages) {
@@ -77,8 +80,11 @@ export function renderReport(pages) {
         ? "Closed (not planned)"
         : issue.state.toLowerCase();
     const { completed, total } = issue.subIssuesSummary;
+    const label = issue.title
+      ? `#${issue.number} ${markdownText(issue.title)}`
+      : `#${issue.number}`;
     lines.push(
-      `| [#${issue.number}](${issue.url}) | ${state} | ${statusFor(issue, project.id)} | ${issue.issueDependenciesSummary.blockedBy} | ${total ? `${completed}/${total}` : "—"} |`,
+      `| [${label}](${issue.url}) | ${state} | ${statusFor(issue, project.id)} | ${issue.issueDependenciesSummary.blockedBy} | ${total ? `${completed}/${total}` : "—"} |`,
     );
   }
   return lines.join("\n");

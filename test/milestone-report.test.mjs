@@ -38,6 +38,7 @@ test("counts paginated milestone issues once, including issues off the board", (
   const first = page([1], 2);
   const second = page([2], 2);
   const [parent] = first.data.repository.milestone.issues.nodes;
+  parent.title = "会場 | [guide] @team";
   parent.subIssuesSummary = { completed: 1, total: 2 };
   parent.issueDependenciesSummary.blockedBy = 1;
   parent.projectItems.nodes.push(
@@ -51,6 +52,12 @@ test("counts paginated milestone issues once, including issues off the board", (
   child.state = "CLOSED";
   child.stateReason = "NOT_PLANNED";
   const report = renderReport([first, second]);
+  assert.ok(
+    report.includes(
+      "[#1 会場 &#124; &#91;guide&#93; &#64;team](https://example.org/issues/1)",
+    ),
+  );
+  assert.ok(report.includes("[#2](https://example.org/issues/2)"));
   assert.match(
     report,
     /\*\*Open\*\* 1 · \*\*Closed\*\* 1 · \*\*Open with blockers\*\* 1/,

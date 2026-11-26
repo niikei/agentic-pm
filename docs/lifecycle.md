@@ -80,7 +80,8 @@ mise exec -- node scripts/milestone-report.mjs niikei/agentic-pm 1 2
 ```
 
 The command reads live GitHub data and writes Markdown to standard output.
-Each milestone issue appears once, including issues missing from the board.
+Each milestone issue appears once with its number and title, including issues
+missing from the board. Follow the title to read the decision or acceptance criteria.
 The Project status, open dependency count and sub-issue counts come from
 GitHub. Closed includes issues closed as not planned. External blockers such
 as a pending login belong in the accompanying decision or handoff.
