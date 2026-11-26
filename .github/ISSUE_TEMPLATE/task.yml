@@ -1,0 +1,23 @@
+name: Project task
+description: Define a reviewable change and how to verify it.
+projects: ["niikei/1"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: Who needs this change, and what should they be able to do?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List observable results a reviewer can check.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and constraints
+      description: Link public sources and related issues. Identify open questions and decisions that need approval.
