@@ -71,6 +71,10 @@ The Project status, open dependency count and sub-issue counts come from
 GitHub. Closed includes issues closed as not planned. External blockers such
 as a pending login belong in the accompanying decision or handoff.
 
+The **Open PRs** column links implementation PRs in the same repository
+and marks drafts. The report reads up to ten linked PRs per issue. Follow
+**See issue** when GitHub has more links. Review and CI status are on the PR.
+
 Review the output before sharing it. Include a dated snapshot when the reader
 needs to reconstruct a decision, and link the verified PR, check run, blocker
 and next action. [Published example](https://github.com/niikei/agentic-pm/issues/5#issuecomment-7199354981)
