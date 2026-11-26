@@ -20,6 +20,15 @@ function statusFor(issue, projectId) {
   return status ? markdownText(status) : "Unset";
 }
 
+function openPullRequests(issue, repositoryId) {
+  const { nodes, pageInfo } = issue.closedByPullRequestsReferences;
+  const links = nodes
+    .filter((pr) => pr.state === "OPEN" && pr.repository.id === repositoryId)
+    .map((pr) => `[#${pr.number}](${pr.url})${pr.isDraft ? " (draft)" : ""}`);
+  if (pageInfo.hasNextPage) links.push(`[See issue](${issue.url})`);
+  return links.join(", ") || "—";
+}
+
 export function renderReport(pages) {
   const repo = pages[0]?.data?.repository;
   const project = repo?.owner?.projectV2;
@@ -71,8 +80,8 @@ export function renderReport(pages) {
     "",
     "Blocker counts cover linked GitHub issues. Open the issue for pending access or decisions.",
     "",
-    "| Issue | Issue state | Project status | Open blockers | Sub-issues completed |",
-    "| --- | --- | --- | ---: | ---: |",
+    "| Issue | Issue state | Project status | Open blockers | Sub-issues completed | Open PRs |",
+    "| --- | --- | --- | ---: | ---: | --- |",
   ];
   for (const issue of issues) {
     const state =
@@ -84,7 +93,7 @@ export function renderReport(pages) {
       ? `#${issue.number} ${markdownText(issue.title)}`
       : `#${issue.number}`;
     lines.push(
-      `| [${label}](${issue.url}) | ${state} | ${statusFor(issue, project.id)} | ${issue.issueDependenciesSummary.blockedBy} | ${total ? `${completed}/${total}` : "—"} |`,
+      `| [${label}](${issue.url}) | ${state} | ${statusFor(issue, project.id)} | ${issue.issueDependenciesSummary.blockedBy} | ${total ? `${completed}/${total}` : "—"} | ${openPullRequests(issue, repo.id)} |`,
     );
   }
   return lines.join("\n");

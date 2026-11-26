@@ -6,6 +6,7 @@ query MilestoneReport(
   $endCursor: String
 ) {
   repository(owner: $owner, name: $repo) {
+    id
     visibility
     owner {
       ... on ProjectV2Owner {
@@ -34,6 +35,20 @@ query MilestoneReport(
           url
           state
           stateReason
+          closedByPullRequestsReferences(first: 10, includeClosedPrs: false) {
+            pageInfo {
+              hasNextPage
+            }
+            nodes {
+              number
+              url
+              state
+              isDraft
+              repository {
+                id
+              }
+            }
+          }
           issueDependenciesSummary {
             blockedBy
           }
