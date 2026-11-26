@@ -124,3 +124,15 @@ Write public documentation, comments, issues, PRs, and commits in English.
 Keep commits atomic. Prefix concise imperative subjects with ✨ for features,
 🐛 for fixes, 📝 for documentation, ♻️ for refactoring, 🚿 for cleanup,
 ✅ for tests, 🔧 for configuration, 🔒 for security, or 👷 for CI/CD.
+
+## Automatic milestone reports
+
+For an issue closure, reopening, or milestone assignment change, open the
+**Milestone digest** run to read its job summary. A milestone-linked PR also
+produces a checkpoint when marked ready for review or closed. For a fresh
+snapshot, choose **Actions → Milestone digest → Run workflow** and supply the
+milestone number. Totals include issues and pull requests. GitHub's milestone
+page links each counted item.
+
+The job reads the repository milestone API with the run's read-only token.
+It runs separately from the required **Repository checks** job.

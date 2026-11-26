@@ -1,0 +1,40 @@
+name: Milestone digest
+
+on:
+  issues:
+    types: [closed, reopened, milestoned, demilestoned]
+  pull_request:
+    types: [ready_for_review, closed]
+  workflow_dispatch:
+    inputs:
+      milestone:
+        description: Repository milestone number
+        type: number
+        required: true
+
+permissions:
+  issues: read
+
+jobs:
+  digest:
+    name: Milestone checkpoint
+    if: inputs.milestone || github.event.milestone.number || github.event.issue.milestone.number || github.event.pull_request.milestone.number
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Report milestone totals
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MILESTONE: ${{ inputs.milestone || github.event.milestone.number || github.event.issue.milestone.number || github.event.pull_request.milestone.number }}
+        run: |
+          case "$MILESTONE" in ''|*[!0-9]*) exit 1 ;; esac
+          gh api "repos/$GITHUB_REPOSITORY/milestones/$MILESTONE" --template '
+          ## Milestone checkpoint
+
+          [Milestone #{{.number}}]({{.html_url}}) is {{.state}}.
+
+          | Repository items | Count |
+          | --- | ---: |
+          | Open issues and pull requests | {{.open_issues}} |
+          | Closed issues and pull requests | {{.closed_issues}} |
+          ' >> "$GITHUB_STEP_SUMMARY"
