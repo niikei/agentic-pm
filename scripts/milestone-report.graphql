@@ -1,0 +1,62 @@
+query MilestoneReport(
+  $owner: String!
+  $repo: String!
+  $project: Int!
+  $milestone: Int!
+  $endCursor: String
+) {
+  repository(owner: $owner, name: $repo) {
+    visibility
+    owner {
+      ... on ProjectV2Owner {
+        projectV2(number: $project) {
+          id
+          public
+          url
+        }
+      }
+    }
+    milestone(number: $milestone) {
+      url
+      issues(
+        first: 50
+        after: $endCursor
+        orderBy: { field: CREATED_AT, direction: ASC }
+      ) {
+        totalCount
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          number
+          url
+          state
+          stateReason
+          issueDependenciesSummary {
+            blockedBy
+          }
+          subIssuesSummary {
+            completed
+            total
+          }
+          projectItems(first: 100, includeArchived: false) {
+            pageInfo {
+              hasNextPage
+            }
+            nodes {
+              project {
+                id
+              }
+              fieldValueByName(name: "Status") {
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
