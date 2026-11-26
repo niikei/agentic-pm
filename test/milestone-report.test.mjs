@@ -64,6 +64,7 @@ test("refuses private inputs and incomplete pagination", () => {
   const hidden = page([]);
   hidden.data.repository.owner.projectV2.public = false;
   assert.throws(() => renderReport([hidden]), /public Project/);
+  assert.throws(() => renderReport([page([]), hidden]), /public Project/);
   assert.throws(() => renderReport([page([1], 2)]), /pagination/);
   assert.throws(() => renderReport([page([1], 2), page([1], 2)]), /pagination/);
 });

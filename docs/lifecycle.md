@@ -23,7 +23,8 @@ and constraints in this prompt.
 Review the draft tree, remove duplicates, and correct unsupported claims.
 Use **Review and create** to publish accepted drafts. Check each child's
 parent, milestone, Project and Status. Add **Blocked by** relationships from
-the dependent issue's **Relationships** menu. A parent groups deliverables;
+the dependent issue's **Relationships** menu. For CLI-created issues, pass
+`--project` explicitly and check the resulting item. [Intake trial](https://github.com/niikei/agentic-pm/issues/3#issuecomment-7199470020). A parent groups deliverables;
 a dependency records ordering. Capture the published issue URLs and the
 corrections on the parent. [GitHub's Copilot issue guide](https://docs.github.com/en/copilot/how-tos/copilot-on-github/copilot-for-github-tasks/use-copilot-to-create-or-update-issues)
 

@@ -20,7 +20,19 @@ function statusFor(issue, projectId) {
 export function renderReport(pages) {
   const repo = pages[0]?.data?.repository;
   const project = repo?.owner?.projectV2;
-  if (repo?.visibility !== "PUBLIC" || !project?.public || !repo.milestone) {
+  const scopeIsPublic =
+    pages.length > 0 &&
+    pages.every(({ data }) => {
+      const page = data?.repository;
+      return (
+        page?.visibility === "PUBLIC" &&
+        page.owner?.projectV2?.public &&
+        page.owner.projectV2.id === project?.id &&
+        page.milestone?.url &&
+        page.milestone.url === repo?.milestone?.url
+      );
+    });
+  if (!scopeIsPublic) {
     throw new Error(
       "A visible public repository, public Project and existing milestone are required.",
     );
