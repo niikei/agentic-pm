@@ -22,6 +22,28 @@ JavaScript dependencies in `package.json` and refresh `pnpm-lock.yaml` with
 `mise exec -- pnpm install`. When upgrading pnpm, update both version pins.
 Review lockfile changes and run the frozen install and checks before submitting.
 
+## TypeScript
+
+When a feature needs TypeScript, use mise's Node.js 26 and pnpm, set
+`"type": "module"`, and execute erasable TypeScript directly with Node. Use
+Biome and prefer `node:test` for lightweight tests. Run the pinned official
+`tsc --noEmit` as a separate check. Keep source comments and JSDoc in English.
+
+Set `module` and `moduleResolution` to `NodeNext`. Enable `strict`,
+`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
+`verbatimModuleSyntax`, and `erasableSyntaxOnly`. For a no-emit project,
+enable `allowImportingTsExtensions` and use explicit extensions for relative
+imports. Use `import type` for type-only bindings.
+
+Use Node's `package.json#imports` for internal modules. For example,
+`"imports": { "#/*": "./src/*.ts" }` resolves `#/model` to `src/model.ts`
+in both Node and the type checker. Avoid `tsconfig.paths` and deep relative
+imports. Consider tsdown when a deliverable requires bundled JavaScript.
+
+The tsrs beta was faster on a synthetic fixture. Keep the official compiler
+as the correctness baseline and revisit tsrs when measurements on real
+project code justify a second checker. See the [compiler evaluation](https://github.com/niikei/agentic-pm/issues/4).
+
 ## Formatting and diagrams
 
 Biome 2.6.9 formats GitHub Flavored Markdown, YAML, JSON, and JavaScript.

@@ -9,8 +9,8 @@ status, and its linked branch or PR. Keep private execution state outside Git.
 Prefer native GitHub features and reviewed OSS tools. Inspect external
 scripts, plugins, and skills, including their dependencies and permissions,
 before execution. Use the pinned toolchain. Introduce application code only
-when a documented need requires it. If adding TypeScript, use strict mode,
-ESM, Vitest, and a separate type check in the quality gate.
+when a documented need requires it. For TypeScript, follow the
+[native Node.js conventions](CONTRIBUTING.md#typescript).
 
 ## Public data
 
