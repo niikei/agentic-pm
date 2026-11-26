@@ -1,22 +1,12 @@
 # agentic-pm
 
-A reference implementation for AI-native project management with GitHub Copilot.
+An agent-agnostic reference implementation for AI-native project management on GitHub. GitHub Issues hold the work breakdown, acceptance criteria and decisions. GitHub Projects tracks delivery status. An agent can resume work from those records using the standard GitHub CLI.
 
-The project uses its own public issues, development branches, and pull requests
-to demonstrate how to scope an agent's work, verify the result, and hand it to a
-human reviewer. Follow work in [GitHub Issues](https://github.com/niikei/agentic-pm/issues) and on the [development board](https://github.com/users/niikei/projects/1).
+## Follow a delivery
 
-## For project managers
+Start with the [development board](https://github.com/users/niikei/projects/1). Open an issue to see its outcome, dependencies and review evidence. The [v0.1 scope](https://github.com/niikei/agentic-pm/issues/5) and [candidate handoff](https://github.com/niikei/agentic-pm/issues/7) show the process on this repository.
 
-Open the [development board](https://github.com/users/niikei/projects/1) in
-your browser. Select an issue by its title to see what will count as done.
-For v0.1, start with the [delivery decision](https://github.com/niikei/agentic-pm/issues/5#issuecomment-7199295133)
-to see what can proceed while Copilot intake waits. The
-[candidate handoff](https://github.com/niikei/agentic-pm/issues/7#issuecomment-7199647505)
-records what passed and which decisions belong to the maintainer.
-
-To try the process on your own project, follow the
-[browser walkthrough](docs/lifecycle.md#start-with-one-outcome).
+To try it, follow the [browser walkthrough](docs/lifecycle.md) or give your agent the [project-cycle skill](.agents/skills/github-project-cycle/SKILL.md). Codex is the first implementation exercised against the live Project. GitHub Copilot and Claude Code are optional integration targets. See the [agent profiles and validation evidence](docs/agent-profiles.md) and the [roadmap](docs/research/planning-and-reporting.md#prioritized-roadmap).
 
 ## Getting started
 
