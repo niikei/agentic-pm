@@ -5,6 +5,7 @@ import { renderDesk } from "../reports/desk/html.mjs";
 import { buildDesk } from "../reports/desk/model.mjs";
 import { markdownText as md } from "../reports/writers/markdown.mjs";
 import { labels, meetingTime } from "./fields.mjs";
+import { sourceStatus } from "./sources.mjs";
 import { history, items, projects, transaction } from "./store.mjs";
 
 export function workDesk(db, project, asOf) {
@@ -123,7 +124,8 @@ export function agenda(desk) {
   return lines.join("\n");
 }
 
-export function managerBrief(db, project, asOf) {
+export function managerBrief(db, project, asOf, onWithhold = () => {}) {
+  const files = new Map();
   const lines = [
     "# 進捗報告",
     "",
@@ -136,12 +138,24 @@ export function managerBrief(db, project, asOf) {
     const events = history(db, record.project, record.item);
     // Later changes can invalidate an earlier reader-ready statement.
     const last = events.at(-1);
-    if (!last.changes.managerUpdate) continue;
+    const status = last.changes.managerUpdate
+      ? last.file
+        ? sourceStatus(db, record.project, last.file, files)
+        : "current"
+      : "later item update";
+    if (status !== "current") {
+      onWithhold({
+        project: record.project,
+        item: record.item,
+        reason: status,
+      });
+      continue;
+    }
     updates.push({ date: last.observed, text: last.changes.managerUpdate });
   }
   updates.sort((a, b) => b.date.localeCompare(a.date));
   for (const { date, text } of updates) lines.push(`- ${date} · ${md(text)}`);
-  if (!updates.length) lines.push("今回共有する進捗は未記録です。");
+  if (!updates.length) lines.push("今回の報告に掲載する更新はありません。");
   return `${lines.join("\n")}\n`;
 }
 
@@ -151,11 +165,12 @@ export function publishView(
   edition,
   project,
   asOf = new Date().toISOString(),
+  onWithhold,
 ) {
   return transaction(db, () => {
     const contents =
       edition === "manager"
-        ? managerBrief(db, project, asOf)
+        ? managerBrief(db, project, asOf, onWithhold)
         : renderDesk(workDesk(db, project, asOf));
     const extension = edition === "manager" ? "md" : "html";
     const destination = join(

@@ -83,7 +83,17 @@ function run() {
       case "desk":
       case "manager":
         if (args.length <= 1)
-          return publishView(db, directory, command, args[0]);
+          return publishView(
+            db,
+            directory,
+            command,
+            args[0],
+            undefined,
+            ({ project, item, reason }) =>
+              console.error(
+                `Withheld ${project}/${item} (${reason}). Review its evidence before sharing.`,
+              ),
+          );
         break;
       case "agenda":
         if (args.length <= 1)

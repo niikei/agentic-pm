@@ -67,6 +67,29 @@ export function inspectSource(db, file, project) {
   return { candidates, shared, file: { path, sha256: digest(path) } };
 }
 
+export function sourceStatus(db, project, file, files) {
+  if (!files.has(file.path)) {
+    try {
+      files.set(file.path, inspectSource(db, file.path));
+    } catch (err) {
+      files.set(file.path, {
+        status: err.code === "ENOENT" ? "missing" : "unavailable",
+      });
+    }
+  }
+  const result = files.get(file.path);
+  if (result.status) return result.status;
+  if (
+    !result.shared &&
+    project !== "inbox" &&
+    !result.candidates.includes(project)
+  )
+    return "unavailable";
+  return result.file.path === file.path && result.file.sha256 === file.sha256
+    ? "current"
+    : "changed";
+}
+
 export function reviewSources(db, project) {
   if (project && !db.prepare("SELECT 1 FROM projects WHERE id=?").get(project))
     throw new Error("Unknown project.");
@@ -88,25 +111,8 @@ export function reviewSources(db, project) {
       if (value !== null) fields.push(field);
     }
     if (!file || !fields.length) continue;
-    if (!files.has(file.path)) {
-      try {
-        files.set(file.path, inspectSource(db, file.path));
-      } catch (err) {
-        files.set(file.path, {
-          status: err.code === "ENOENT" ? "missing" : "unavailable",
-        });
-      }
-    }
-    const result = files.get(file.path);
-    if (
-      !result.status &&
-      (result.shared ||
-        row.project === "inbox" ||
-        result.candidates.includes(row.project)) &&
-      result.file.sha256 === file.sha256 &&
-      result.file.path === file.path
-    )
-      continue;
+    const status = sourceStatus(db, row.project, file, files);
+    if (status === "current") continue;
     attention.push({
       project: row.project,
       item: row.item,
@@ -114,7 +120,7 @@ export function reviewSources(db, project) {
       source,
       observed,
       path: file.path,
-      status: result.status ?? "changed",
+      status,
     });
   }
   return { checkedFiles: files.size, attention };

@@ -390,3 +390,52 @@ test("a shared calendar supplies a zoned meeting without assigning a deadline or
   assert.deepEqual(reviewSources(db).attention, []);
   assert.doesNotMatch(managerBrief(db, undefined, asOf), /10:30/);
 });
+
+test("manager regeneration withholds stale or missing evidence and lists affected items only to the operator", (t) => {
+  const { dir, db } = fixture(t);
+  register(db, "pilot", "試行", [dir]);
+  const note = join(dir, "minutes.md");
+  writeFileSync(note, "Confirmed draft one");
+  const source = inspectSource(db, note);
+  const first = { ...events[0], file: source.file };
+  const other = {
+    ...events[0],
+    event: "independent",
+    item: "other",
+    changes: {
+      title: "Internal only",
+      status: "done",
+      managerUpdate: "Another verified outcome",
+    },
+  };
+  applyEvents(db, [first, other]);
+  const asOf = "2026-11-28T04:00:00Z";
+  assert.match(managerBrief(db, "pilot", asOf), /初回利用者/);
+  writeFileSync(note, "Decision changed");
+  const held = [];
+  const brief = managerBrief(db, "pilot", asOf, (row) => held.push(row));
+  assert.deepEqual(held, [
+    { project: "pilot", item: first.item, reason: "changed" },
+  ]);
+  assert.match(brief, /Another verified outcome/);
+  assert.doesNotMatch(
+    brief,
+    /初回利用者|minutes\.md|reader-test|changed|Internal only/,
+  );
+  applyEvents(db, [
+    {
+      ...first,
+      base: 1,
+      event: "rechecked",
+      file: inspectSource(db, note).file,
+      changes: { managerUpdate: "Rechecked outcome" },
+    },
+  ]);
+  assert.match(managerBrief(db, "pilot", asOf), /Rechecked outcome/);
+  rmSync(note);
+  const path = publishView(db, dir, "manager", "pilot", asOf, (row) =>
+    held.push(row),
+  );
+  assert.equal(held.at(-1).reason, "missing");
+  assert.doesNotMatch(readFileSync(path, "utf8"), /Rechecked outcome|missing/);
+});
