@@ -11,14 +11,19 @@ import {
 import { dirname, extname, isAbsolute, join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { indexPreamble } from "./okf.mjs";
-import { contains, inspectSource, locate } from "./sources.mjs";
+import {
+  contains,
+  inspectReviewedFile,
+  inspectSource,
+  locate,
+} from "./sources.mjs";
 import { recordEvents, transaction } from "./store.mjs";
 import { bundles, refreshBundle } from "./vault.mjs";
 import { publishView } from "./views.mjs";
 
-function prepareReceipts(db) {
+export function prepareReceipts(db) {
   db.exec(
-    "CREATE TABLE IF NOT EXISTS reviewed_notes(path TEXT PRIMARY KEY, sha256 TEXT NOT NULL)",
+    "CREATE TABLE IF NOT EXISTS reviewed_notes(path TEXT PRIMARY KEY, sha256 TEXT NOT NULL, body BLOB)",
   );
 }
 
@@ -158,19 +163,26 @@ export function capture(db, directory, batch) {
   const { events, reviewed } = batch;
   const updates = transaction(db, () => {
     prepareReceipts(db);
+    // Existing workspaces have digest-only receipts until their next successful reading.
+    if (
+      !db
+        .prepare("PRAGMA table_info(reviewed_notes)")
+        .all()
+        .some((column) => column.name === "body")
+    )
+      db.exec("ALTER TABLE reviewed_notes ADD COLUMN body BLOB");
     const remember = db.prepare(
-      "INSERT INTO reviewed_notes VALUES (?,?) ON CONFLICT(path) DO UPDATE SET sha256=excluded.sha256",
+      "INSERT INTO reviewed_notes(path,sha256,body) VALUES (?,?,?) ON CONFLICT(path) DO UPDATE SET sha256=excluded.sha256,body=excluded.body",
     );
     for (const receipt of reviewed) {
-      if (
-        !receipt ||
-        typeof receipt.path !== "string" ||
-        !isDeepStrictEqual(inspectSource(db, receipt.path).file, receipt)
-      )
+      if (typeof receipt?.path !== "string")
+        throw new Error("Supply an inspected file receipt.");
+      const { file, body } = inspectReviewedFile(db, receipt.path);
+      if (!isDeepStrictEqual(file, receipt))
         throw new Error(
           "Reviewed source changed. Read it again before capture.",
         );
-      remember.run(receipt.path, receipt.sha256);
+      remember.run(receipt.path, receipt.sha256, body ?? null);
     }
     const saved = recordEvents(db, events);
     preparePublications(db);

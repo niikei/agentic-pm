@@ -1,3 +1,4 @@
+import { isUtf8 } from "node:buffer";
 import { createHash } from "node:crypto";
 import {
   closeSync,
@@ -7,7 +8,7 @@ import {
   realpathSync,
   statSync,
 } from "node:fs";
-import { isAbsolute, relative, sep } from "node:path";
+import { extname, isAbsolute, relative, sep } from "node:path";
 
 export function contains(root, file) {
   const path = relative(root, file);
@@ -31,28 +32,40 @@ export function locate(db, file) {
   ];
 }
 
-function digest(file) {
+const baselineLimit = 4 * 1024 * 1024;
+
+function fingerprint(file, keepText) {
   if (!statSync(file).isFile()) throw new Error("Select a regular file.");
   const fd = openSync(file, "r");
   try {
     const before = fstatSync(fd, { bigint: true });
+    let chunks = keepText && before.size <= baselineLimit ? [] : null;
+    let bytes = 0;
     const hash = createHash("sha256");
     const buffer = Buffer.allocUnsafe(64 * 1024);
     for (;;) {
       const length = readSync(fd, buffer);
       if (!length) break;
-      hash.update(buffer.subarray(0, length));
+      const part = buffer.subarray(0, length);
+      hash.update(part);
+      bytes += length;
+      if (chunks && bytes <= baselineLimit) chunks.push(Buffer.from(part));
+      else chunks = null;
     }
     const after = fstatSync(fd, { bigint: true });
     if (after.mtimeNs !== before.mtimeNs || after.size !== before.size)
       throw new Error("Source changed while reading. Read it again.");
-    return hash.digest("hex");
+    const body = chunks && Buffer.concat(chunks);
+    return {
+      sha256: hash.digest("hex"),
+      body: body && !body.includes(0) && isUtf8(body) ? body : null,
+    };
   } finally {
     closeSync(fd);
   }
 }
 
-export function inspectSource(db, file, project, scope) {
+function readSource(db, file, project, scope, keepText) {
   if (!isAbsolute(file)) throw new Error("Select an absolute file path.");
   const path = realpathSync(file);
   if (scope && (!contains(scope, path) || path !== file))
@@ -66,7 +79,20 @@ export function inspectSource(db, file, project, scope) {
       (project && project !== "inbox" && !candidates.includes(project)))
   )
     throw new Error("Source is outside the project's registered roots.");
-  return { candidates, shared, file: { path, sha256: digest(path) } };
+  const { sha256, body } = fingerprint(path, keepText);
+  const selection = { candidates, shared, file: { path, sha256 } };
+  return keepText ? { ...selection, body } : selection;
+}
+
+export function inspectSource(db, file, project, scope) {
+  return readSource(db, file, project, scope, false);
+}
+
+export function inspectReviewedFile(db, file) {
+  const keepText = [".md", ".markdown", ".txt"].includes(
+    extname(file).toLowerCase(),
+  );
+  return readSource(db, file, undefined, undefined, keepText);
 }
 
 export function sourceStatus(db, project, file, files) {
