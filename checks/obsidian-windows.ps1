@@ -36,15 +36,13 @@ if ((Get-AuthenticodeSignature $binary).Status -ne 'Valid') { throw 'Desktop sig
 # This fresh client profile contains only our synthetic vault.
 $registry = @{ vaults = @{ '0123456789abcdef' = @{ path = $vault; ts = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds(); open = $true } } }
 $registry | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $profileDir 'obsidian.json') -Encoding utf8NoBOM
-function Open-TrialNote($relativePath) {
+function Start-TrialClient {
     $start = [System.Diagnostics.ProcessStartInfo]::new($binary)
     $start.UseShellExecute = $false
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
     $start.ArgumentList.Add("--user-data-dir=$profileDir")
     $start.ArgumentList.Add("--force-renderer-accessibility")
-    $destination = [uri]::EscapeDataString($relativePath)
-    $start.ArgumentList.Add("obsidian://open?vault=0123456789abcdef&file=$destination")
     $client = [System.Diagnostics.Process]::Start($start)
     $client.BeginOutputReadLine()
     $client.BeginErrorReadLine()
@@ -56,44 +54,84 @@ function Find-TrialLeaf($node, $activeId) {
         if ($found) { return $found }
     }
 }
+Add-Type -AssemblyName UIAutomationClient
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class TrialWindow {
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+}
+'@
+
+function Get-TrialWindow {
+    Get-Process Obsidian -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -eq $binary -and $_.MainWindowTitle -like '* - Synthetic Vault - Obsidian*' } |
+        Select-Object -First 1
+}
+function Get-TrialElements($window) {
+    $tree = [System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)
+    $tree.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+}
+function Send-TrialKeys($window, $keys) {
+    if ([TrialWindow]::GetForegroundWindow() -ne $window.MainWindowHandle) { throw 'The synthetic vault lacks focus.' }
+    [System.Windows.Forms.SendKeys]::SendWait($keys)
+}
+function Open-TrialNote($window, $relativePath) {
+    $stem = [IO.Path]::GetFileNameWithoutExtension($relativePath)
+    if (!(Test-Path -LiteralPath (Join-Path $vault $relativePath))) { throw 'Missing synthetic note.' }
+    $shell = New-Object -ComObject WScript.Shell
+    if (!$shell.AppActivate($window.Id)) { throw 'Unable to activate the synthetic vault.' }
+    Start-Sleep -Milliseconds 300
+    Send-TrialKeys $window '^o'
+    $deadline = [datetime]::UtcNow.AddSeconds(10)
+    do {
+        $focus = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($focus.Current.ControlType -eq [System.Windows.Automation.ControlType]::Edit) { break }
+        Start-Sleep -Milliseconds 250
+    } while ([datetime]::UtcNow -lt $deadline)
+    if ($focus.Current.ControlType -ne [System.Windows.Automation.ControlType]::Edit) { throw 'Quick switcher search field unavailable.' }
+    Send-TrialKeys $window $stem
+    $deadline = [datetime]::UtcNow.AddSeconds(10)
+    do {
+        $names = @(Get-TrialElements $window | ForEach-Object { $_.Current.Name })
+        if ($names -contains $stem -or $names -contains $relativePath -or $names -contains "Work/$stem") {
+            Send-TrialKeys $window '{ENTER}'
+            return
+        }
+        Start-Sleep -Milliseconds 250
+    } while ([datetime]::UtcNow -lt $deadline)
+    throw "The quick switcher did not show the exported note $relativePath."
+}
 function Confirm-TrialNote($relativePath) {
     $workspaceFile = Join-Path $vault '.obsidian/workspace.json'
     $stem = [IO.Path]::GetFileNameWithoutExtension($relativePath)
-    $deadline = [datetime]::UtcNow.AddSeconds(55)
-    $repeatAt = [datetime]::UtcNow.AddSeconds(12)
-    $resent = $false
+    $deadline = [datetime]::UtcNow.AddSeconds(25)
     do {
-        $windows = @(Get-Process Obsidian -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $binary -and $_.MainWindowHandle -ne 0 })
-        foreach ($window in $windows) {
-            if ($window.MainWindowTitle.StartsWith("$stem - Synthetic Vault - ")) { return }
-        }
-        if (!$resent -and [datetime]::UtcNow -gt $repeatAt) {
-            Open-TrialNote $relativePath
-            $resent = $true
-        }
+        $window = Get-TrialWindow
+        if ($window -and $window.MainWindowTitle.StartsWith("$stem - Synthetic Vault - ")) { return }
         if (Test-Path $workspaceFile) {
             try {
                 $state = Get-Content -LiteralPath $workspaceFile -Raw | ConvertFrom-Json -AsHashtable
                 if ((Find-TrialLeaf $state.main $state.active) -eq $relativePath) { return }
             } catch [System.IO.IOException] {}
         }
-        Start-Sleep -Seconds 1
+        Start-Sleep -Milliseconds 500
     } while ([datetime]::UtcNow -lt $deadline)
-    $hasWorkspace = Test-Path $workspaceFile
-    $trialTitles = @($windows | ForEach-Object { $_.MainWindowTitle })
-    Add-Type -AssemblyName UIAutomationClient
-    foreach ($window in $windows) {
-        $tree = [System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)
-        $elements = $tree.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
-        $prompts = @($elements | ForEach-Object { $_.Current.Name } | Where-Object { $_ -match 'trust|restricted mode|safe mode|open vault|release notes|index|Synthetic Vault' } | Sort-Object -Unique | Select-Object -First 12)
-        Write-Output "Recognized synthetic UI elements: $($prompts -join ', ')"
-    }
-    Write-Output "Synthetic client windows: $($windows.Count). Persisted workspace: $hasWorkspace. Trial titles: $($trialTitles -join ', ')"
     throw "The desktop client did not report an active Markdown leaf for $relativePath."
 }
 
+Start-TrialClient
+$deadline = [datetime]::UtcNow.AddSeconds(40)
+do {
+    $window = Get-TrialWindow
+    if ($window) { break }
+    Start-Sleep -Milliseconds 500
+} while ([datetime]::UtcNow -lt $deadline)
+if (!$window) { throw 'The synthetic vault did not open.' }
 foreach ($note in 'Work/index.md', 'Work/p-pilot_i-reader-test.md') {
-    Open-TrialNote $note
+    Open-TrialNote $window $note
     Confirm-TrialNote $note
     Write-Output "Verified active Markdown note: $note"
 }
