@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
+  appendFileSync,
   cpSync,
   mkdirSync,
   mkdtempSync,
@@ -23,7 +24,7 @@ import {
   projects,
   register,
 } from "../workspace/store.mjs";
-
+import { refreshBundle } from "../workspace/vault.mjs";
 import {
   agenda,
   managerBrief,
@@ -438,4 +439,50 @@ test("manager regeneration withholds stale or missing evidence and lists affecte
   );
   assert.equal(held.at(-1).reason, "missing");
   assert.doesNotMatch(readFileSync(path, "utf8"), /Rechecked outcome|missing/);
+});
+
+test("refresh a bound OKF project in place, preserve material outside generated text and isolate conflicts", (t) => {
+  const { dir, db } = fixture(t);
+  register(db, "pilot", "試行", []);
+  applyEvents(db, events);
+  const target = join(dir, "Knowledge");
+  const filename = "p-pilot_i-reader-test.md";
+  const page = join(target, filename);
+  const first = refreshBundle(db, target, "pilot");
+  assert.deepEqual(first.written, [filename, "index.md"]);
+  assert.deepEqual(refreshBundle(db, target, "pilot").written, []);
+  const personal = "\n## 手書きメモ\n\n[[Original wording]]\n";
+  appendFileSync(page, personal);
+  writeFileSync(join(target, "Daily.md"), "Private daily note");
+  const revise = (event, base, title) =>
+    applyEvents(db, [{ ...events[0], event, base, changes: { title } }]);
+  revise("new-title", 1, "Revised title");
+  assert.deepEqual(refreshBundle(db, target, "pilot").conflicts, []);
+  const revised = readFileSync(page, "utf8");
+  assert.ok(revised.endsWith(personal));
+  assert.match(revised, /# Revised title/);
+  assert.equal(
+    readFileSync(join(target, "Daily.md"), "utf8"),
+    "Private daily note",
+  );
+  const withProperty = revised.replace(
+    "type: Work Item",
+    "x-team-tag: Review\ntype: Work Item",
+  );
+  writeFileSync(page, withProperty);
+  revise("newer-title", 2, "Later title");
+  assert.deepEqual(refreshBundle(db, target, "pilot").conflicts, [
+    { name: filename, reason: "edited" },
+  ]);
+  assert.equal(readFileSync(page, "utf8"), withProperty);
+  assert.doesNotMatch(readFileSync(first.index, "utf8"), /Later title/);
+  rmSync(page);
+  assert.equal(
+    refreshBundle(db, target, "pilot").conflicts[0].reason,
+    "removed",
+  );
+  assert.throws(() => refreshBundle(db, target, "inbox"), /project changed/);
+  const ordinary = join(dir, "Existing notes");
+  mkdirSync(ordinary);
+  assert.throws(() => refreshBundle(db, ordinary, "pilot"), /EEXIST/);
 });

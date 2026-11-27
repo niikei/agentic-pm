@@ -11,6 +11,7 @@ import {
   projects,
   register,
 } from "./store.mjs";
+import { bundles, refreshBundle } from "./vault.mjs";
 import { agenda, publishView, workDesk } from "./views.mjs";
 
 const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
@@ -26,6 +27,8 @@ const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
   items [PROJECT]
   history PROJECT ITEM
   okf NEW_DIRECTORY [PROJECT]
+  okf-refresh DIRECTORY PROJECT
+  bundles
   desk [PROJECT]
   agenda [PROJECT]
   manager [PROJECT]`;
@@ -98,6 +101,16 @@ function run() {
       case "agenda":
         if (args.length <= 1)
           return agenda(workDesk(db, args[0], new Date().toISOString()));
+        break;
+      case "bundles":
+        if (!args.length) return bundles(db);
+        break;
+      case "okf-refresh":
+        if (args.length === 2) {
+          const result = refreshBundle(db, ...args);
+          if (result.conflicts.length) process.exitCode = 2;
+          return result;
+        }
         break;
       case "okf":
         if (args.length === 1 || args.length === 2)

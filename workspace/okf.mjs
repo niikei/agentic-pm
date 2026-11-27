@@ -45,25 +45,12 @@ function concept(item, events) {
   return `${lines.join("\n")}\n`;
 }
 
-export function exportBundle(db, destination, project) {
-  // Materialize one database snapshot before creating any destination files.
-  db.exec("BEGIN");
-  let pages;
-  try {
-    pages = items(db, project).map((item) => ({
-      name: `p-${item.project}_i-${item.item}.md`,
-      title: item.title,
-      body: concept(item, history(db, item.project, item.item)),
-    }));
-    db.exec("COMMIT");
-  } catch (error) {
-    db.exec("ROLLBACK");
-    throw error;
-  }
-  mkdirSync(destination, { mode: 0o700 });
-  const write = (file, value) =>
-    writeFileSync(join(destination, file), value, { flag: "wx", mode: 0o600 });
-  for (const page of pages) write(page.name, page.body);
+export function bundlePages(db, project) {
+  const pages = items(db, project).map((item) => ({
+    name: `p-${item.project}_i-${item.item}.md`,
+    title: item.title,
+    body: concept(item, history(db, item.project, item.item)),
+  }));
   const index = [
     "---",
     'okf_version: "0.3"',
@@ -74,6 +61,24 @@ export function exportBundle(db, destination, project) {
     "",
     ...pages.map((page) => `- [${markdownText(page.title)}](${page.name})`),
   ];
-  write("index.md", `${index.join("\n")}\n`);
+  return [...pages, { name: "index.md", body: `${index.join("\n")}\n` }];
+}
+
+export function exportBundle(db, destination, project) {
+  db.exec("BEGIN");
+  let pages;
+  try {
+    pages = bundlePages(db, project);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+  mkdirSync(destination, { mode: 0o700 });
+  for (const page of pages)
+    writeFileSync(join(destination, page.name), page.body, {
+      flag: "wx",
+      mode: 0o600,
+    });
   return join(destination, "index.md");
 }
