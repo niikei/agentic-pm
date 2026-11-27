@@ -22,3 +22,13 @@ gh pr view PR --repo OWNER/REPO --json url,state,isDraft,headRefOid,statusCheckR
 ```
 
 Read the issue body and latest decision before choosing work. A parent groups outcomes. An open blocking issue constrains their order. Check the linked PR's own state and checks to see what is ready for review. For a cross-repository PR, use its full URL and confirm its visibility before sharing it. If a field or check is unavailable, record that limit in the handoff.
+
+## Generate a daily plan
+
+With Node.js 26 and an authenticated GitHub CLI that can read the public Project, run this command from the adopting checkout's root. Supply the repository, its owner's Project number and its milestone number. The bundled reporter reads GitHub and prints Markdown.
+
+```sh
+node .agents/skills/github-project-cycle/scripts/milestone-report.mjs OWNER/REPO PROJECT_NUMBER MILESTONE_NUMBER --plan
+```
+
+Follow the issue and PR links for the current assignees, acceptance criteria and outstanding decisions. Omit `--plan` for milestone totals.

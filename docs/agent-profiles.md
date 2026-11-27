@@ -1,10 +1,10 @@
 # Agent profiles
 
-All profiles use the same [project-cycle skill](../.agents/skills/github-project-cycle/SKILL.md), GitHub issues, Project and approval boundaries. The skill is a Markdown file with standard name and description frontmatter. An operator can point an agent directly at the file. [Agent Skills specification](https://agentskills.io/specification)
+All profiles use the same [project-cycle skill](../.agents/skills/github-project-cycle/SKILL.md), GitHub issues, Project and approval boundaries. The skill includes Markdown instructions with standard frontmatter and a read-only milestone reporter. An operator can point an agent directly at the file. [Agent Skills specification](https://agentskills.io/specification)
 
 ## Install in another repository
 
-From the destination Git checkout, use GitHub CLI's project-scoped installer. Replace `REVIEWED_COMMIT` with the full commit SHA you intend to adopt. Preview the skill and review its source before installation. The hidden-directory flag includes this repository's `.agents/skills` directory in the search. [GitHub CLI installation reference](https://cli.github.com/manual/gh_skill_install)
+From the destination Git checkout, use GitHub CLI's project-scoped installer. Replace `REVIEWED_COMMIT` with the full commit SHA you intend to adopt. Preview the instructions and inspect all files in the skill directory at that commit, including the JavaScript and GraphQL query, before installation. The hidden-directory flag includes this repository's `.agents/skills` directory in the search. [GitHub CLI installation reference](https://cli.github.com/manual/gh_skill_install)
 
 ```sh
 gh skill preview niikei/agentic-pm github-project-cycle@REVIEWED_COMMIT --allow-hidden-dirs
@@ -12,7 +12,19 @@ gh skill install niikei/agentic-pm github-project-cycle --pin REVIEWED_COMMIT --
 gh skill list --agent codex --scope project --json skillName,version,pinned
 ```
 
-The installed skill includes read-only commands for a handoff using an issue, its Project and its PR. For a full milestone snapshot in the reference checkout, use the [milestone reporter](lifecycle.md#verify-a-milestone-snapshot).
+From the destination root, use Node.js 26 and an authenticated `gh` with read access to the public Project. Replace the example repository, Project number and milestone number with your own. The reporter has no package installation step.
+
+```sh
+node .agents/skills/github-project-cycle/scripts/milestone-report.mjs niikei/agentic-pm 1 6 --plan
+```
+
+Commit the installed directory so the team can review and reproduce the chosen version. Keep team-specific instructions in the destination's own `AGENTS.md`.
+
+## Update or roll back
+
+Start with a clean working tree. If the installed directory has local changes, save them in Git first and compare them with the upstream revision. Reapply any intentional customization before accepting the update. Preview and inspect the new full commit as above. On an update branch, repeat the install command with the new SHA and `--force` to replace the installed copy. Inspect the entire directory diff, including added and removed files, verify the pin with `gh skill list`, and rerun the plan. Commit the skill update separately.
+
+To roll back a committed update, run `git revert UPDATE_COMMIT` on a branch, resolve any conflicts with later edits, and review the resulting pin and directory contents. This also removes files introduced by that update. Repeat the previous version's documented check. Versions that predate the bundled reporter support the individual issue and PR commands in their installed instructions.
 
 ## Codex
 
