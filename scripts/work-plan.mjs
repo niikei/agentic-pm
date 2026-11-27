@@ -179,8 +179,6 @@ export function renderWorkPlan(repo, issues) {
       );
       if (prs.length)
         lines.push(`  - Pull requests: ${pullRequestLinks(issue, prs)}`);
-      if (group === "Parent outcomes")
-        lines.push(...childEvidence(issue, repo.id));
       if (group === "Implementation queue") {
         for (const line of criteria
           .split(/\r?\n/)
@@ -190,6 +188,8 @@ export function renderWorkPlan(repo, issues) {
           );
         }
       }
+      if (group === "Parent outcomes")
+        lines.push(...childEvidence(issue, repo.id));
     }
     lines.push("");
   }
