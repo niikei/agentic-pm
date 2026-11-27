@@ -572,3 +572,62 @@ test("routes known public external implementation without publishing external PR
   issue.issueDependenciesSummary.blockedBy = 1;
   assert.match(plan(), /### Waiting on dependencies/);
 });
+
+test("retains issue evidence and ignores historical priority and status on a closed Project", () => {
+  const input = planningPage([6, 4, 2, 1, 3, 5, 7]);
+  const repo = input.data.repository;
+  const [active, todo, offBoard, decision, blocked, review, parent] =
+    repo.milestone.issues.nodes;
+  repo.owner.projectV2.closed = true;
+  active.projectItems.nodes[0].fieldValueByName.name = "In Progress";
+  active.projectItems.nodes[0].priority = { optionId: "urgent" };
+  offBoard.projectItems.nodes = [];
+  decision.labels.nodes.push({ name: "needs decision" });
+  blocked.issueDependenciesSummary.blockedBy = 1;
+  review.closedByPullRequestsReferences.nodes.push({
+    number: 8,
+    url: "https://example.org/pull/8",
+    repository: { id: "repo" },
+    state: "OPEN",
+  });
+  parent.subIssuesSummary = { completed: 1, total: 2 };
+  const snapshot = renderReport([input]);
+  const plan = renderReport([input], { plan: true });
+  assert.match(plan, /selected Project is closed/);
+  assert.match(plan, /Choose an open Project/);
+  assert.doesNotMatch(
+    plan,
+    /Implementation queue|Pick up|Add the issue|Continue the active|\*\*First\*\*/,
+  );
+  assert.deepEqual(
+    [...plan.matchAll(/^- \*\*Unranked\*\* · \[#(\d+)\]/gm)].map((match) =>
+      Number(match[1]),
+    ),
+    [
+      decision.number,
+      review.number,
+      blocked.number,
+      parent.number,
+      offBoard.number,
+      todo.number,
+      active.number,
+    ],
+  );
+  assert.match(plan, /authorized decision maker/);
+  assert.match(plan, /Review the open PR/);
+  assert.match(plan, /Resolve 1 open prerequisite/);
+  assert.match(plan, /Coordinate the remaining child issues/);
+  repo.owner.projectV2.closed = false;
+  assert.equal(renderReport([input]), snapshot);
+  assert.match(
+    renderReport([input], { plan: true }),
+    /Continue the active implementation/,
+  );
+
+  const empty = planningPage([]);
+  empty.data.repository.owner.projectV2.closed = true;
+  assert.match(
+    renderReport([empty], { plan: true }),
+    /Project is closed[\s\S]+No open milestone issues/,
+  );
+});

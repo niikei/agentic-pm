@@ -15,6 +15,7 @@ query MilestoneReport(
         projectV2(number: $project) {
           id
           public
+          closed @include(if: $plan)
           fields(first: 50) @include(if: $plan) {
             nodes {
               ... on ProjectV2SingleSelectField {
