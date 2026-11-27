@@ -12,11 +12,13 @@ gh skill install niikei/agentic-pm github-project-cycle --pin REVIEWED_COMMIT --
 gh skill list --agent codex --scope project --json skillName,version,pinned
 ```
 
-From the destination root, use Node.js 26 and an authenticated `gh` with read access to the public Project. Replace the example repository, Project number and milestone number with your own. The reporter has no package installation step.
+From the destination root, use Node.js 26 and an authenticated `gh` with read access to the public Project. The example selects the runtime for one command with mise. If Node.js 26 is already active, run the reporter directly with `node`.
 
 ```sh
-node .agents/skills/github-project-cycle/scripts/milestone-report.mjs niikei/agentic-pm 1 6 --plan
+mise exec node@26.13.1 -- node .agents/skills/github-project-cycle/scripts/milestone-report.mjs vitejs/vite 1 36 --plan
 ```
+
+Verify that the output starts with **Milestone work plan** and links to the requested Project and milestone. Compare an issue in the plan with its GitHub record. A milestone with no open issues prints a message below the heading. Substitute your repository, Project number and milestone number for subsequent runs.
 
 Commit the installed directory so the team can review and reproduce the chosen version. Keep team-specific instructions in the destination's own `AGENTS.md`.
 
@@ -35,7 +37,7 @@ git add -A -- .agents/skills/github-project-cycle
 git diff --cached -- .agents/skills/github-project-cycle
 ```
 
-Compare intentional customizations with the backup and reapply the ones you need. Review the final staged changes, including removals, rerun the plan and commit the skill update separately.
+Compare intentional customizations with the backup and reapply the ones you need. Review the final staged changes, including removals. Check that `gh skill list` reports the intended version and `pinned: true`. Rerun the plan and commit the skill update separately.
 
 To roll back a committed update, run `git revert UPDATE_COMMIT` on a branch, resolve any conflicts with later edits, and review the resulting pin and directory contents. This also removes files introduced by that update. Repeat the previous version's documented check. Versions that predate the bundled reporter support the individual issue and PR commands in their installed instructions.
 
