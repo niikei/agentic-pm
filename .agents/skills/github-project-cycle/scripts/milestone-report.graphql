@@ -81,6 +81,7 @@ query MilestoneReport(
               reviewRequests(first: 1) @include(if: $plan) {
                 totalCount
               }
+              mergeable @include(if: $plan)
               reviewDecision @include(if: $plan)
               headRefOid @include(if: $plan)
               commits(last: 1) @include(if: $plan) {

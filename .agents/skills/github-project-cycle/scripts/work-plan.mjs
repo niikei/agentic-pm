@@ -94,6 +94,11 @@ function nextAction(issue, repo, item, prs, criteria, needsDecision) {
         "Pull requests",
         "Address the requested changes on the linked PR.",
       ];
+    if (prs.some((pr) => pr.mergeable === "CONFLICTING"))
+      return [
+        "Pull requests",
+        "Resolve the marked merge conflicts and recheck the updated PR heads.",
+      ];
     const next = prs.some((pr) => !pr.isDraft)
       ? "Review the open PR and its checks."
       : "Continue the draft implementation.";
