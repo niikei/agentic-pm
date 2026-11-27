@@ -50,6 +50,19 @@ for (const link of document.querySelectorAll("[data-filter]")) {
 }
 function markSection() {
   const target = location.hash || "#overview";
+  if (target.startsWith("#record-")) {
+    const details = document.getElementById(target.slice(1));
+    if (details?.matches("#tasks details")) {
+      if (details.closest("tr").hidden) {
+        search.value = "";
+        select.value = "all";
+        refresh();
+      }
+      details.open = true;
+      details.querySelector("summary").focus({ preventScroll: true });
+      details.scrollIntoView({ block: "center" });
+    }
+  }
   for (const link of document.querySelectorAll(".rail nav a")) {
     if (link.hash === target) link.setAttribute("aria-current", "location");
     else link.removeAttribute("aria-current");

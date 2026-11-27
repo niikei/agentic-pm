@@ -23,6 +23,13 @@ import {
   register,
 } from "../workspace/store.mjs";
 
+import {
+  agenda,
+  managerBrief,
+  publishView,
+  workDesk,
+} from "../workspace/views.mjs";
+
 const meeting = new URL("../workspace/examples/meeting.json", import.meta.url);
 const events = JSON.parse(readFileSync(meeting, "utf8"));
 function fixture(t) {
@@ -132,4 +139,61 @@ test("PowerShell-compatible CLI opens a BOM-encoded update and exports scoped no
   } finally {
     db.close();
   }
+});
+
+test("desk, agenda, and manager views respect evidence, audience and project scope", (t) => {
+  const { dir, db } = fixture(t);
+  register(db, "pilot", "試行", []);
+  applyEvents(db, events);
+  const asOf = "2026-12-01T00:00:00Z";
+  const desk = workDesk(db, undefined, asOf);
+  assert.equal(desk.tasks.length, 2);
+  assert.equal(desk.next.title, events[0].changes.title);
+  assert.equal(desk.followUps[0].followUp, "2026-11-30");
+  const memo = agenda(desk);
+  assert.match(memo, /案件未整理/);
+  assert.match(memo, /約半日/);
+  assert.doesNotMatch(memo, /上司.*(欲しい|期待している)/);
+  const scoped = workDesk(db, "pilot", asOf);
+  assert.equal(scoped.tasks.length, 1);
+  const html = readFileSync(
+    publishView(db, dir, "desk", "pilot", asOf),
+    "utf8",
+  );
+  assert.ok(html.includes(`href="#${scoped.next.target}"`));
+  assert.ok(html.includes(`<details id="${scoped.next.target}">`));
+  assert.match(html, /根拠と変更履歴/);
+  assert.match(html, /定例会議事録、決定事項2/);
+  assert.doesNotMatch(html, /金曜の打合せ/);
+  const brief = managerBrief(db, undefined, asOf);
+  assert.match(brief, /対象を初回利用者に絞った/);
+  assert.doesNotMatch(
+    brief,
+    /架空の|約半日|reader-test|案件未整理|打合せ|https?:/,
+  );
+  applyEvents(db, [
+    {
+      ...events[0],
+      event: "postponed",
+      base: 1,
+      changes: {
+        dueDate: null,
+        question: "日程を再確認する",
+        hypothesis: "仮説のみ",
+      },
+    },
+  ]);
+  assert.doesNotMatch(managerBrief(db, "pilot", asOf), /12月2日|仮説のみ/);
+  assert.equal(workDesk(db, "pilot", asOf).next, undefined);
+  assert.match(agenda(workDesk(db, "pilot", asOf)), /仮説のみ/);
+  applyEvents(db, [
+    {
+      ...events[0],
+      event: "result",
+      base: 2,
+      changes: { status: "done", managerUpdate: "読み合わせが完了した。" },
+    },
+  ]);
+  assert.equal(workDesk(db, "pilot", asOf).tasks.length, 0);
+  assert.match(managerBrief(db, "pilot", asOf), /読み合わせが完了した/);
 });
