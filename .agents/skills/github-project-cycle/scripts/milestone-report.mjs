@@ -102,6 +102,7 @@ export function run(args) {
     process.exitCode = 1;
   } else {
     const [owner, repo] = repository.split("/");
+    const plan = mode === "--plan";
     const query = readFileSync(
       new URL("milestone-report.graphql", import.meta.url),
       "utf8",
@@ -127,7 +128,8 @@ export function run(args) {
           "-F",
           `milestone=${milestone}`,
           "-F",
-          `plan=${mode === "--plan"}`,
+          `plan=${plan}`,
+          ...(plan ? ["-f", "states[]=OPEN"] : []),
         ],
         {
           encoding: "utf8",
@@ -135,9 +137,7 @@ export function run(args) {
           stdio: ["ignore", "pipe", "inherit"],
         },
       );
-      console.log(
-        renderReport(JSON.parse(response), { plan: mode === "--plan" }),
-      );
+      console.log(renderReport(JSON.parse(response), { plan }));
     } catch (error) {
       console.error(
         error.status

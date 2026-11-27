@@ -164,10 +164,18 @@ test("shows current head checks and review decisions per visible PR in planning 
 test("refuses private inputs and incomplete pagination", () => {
   const hidden = page([]);
   hidden.data.repository.owner.projectV2.public = false;
-  assert.throws(() => renderReport([hidden]), /public Project/);
-  assert.throws(() => renderReport([page([]), hidden]), /public Project/);
-  assert.throws(() => renderReport([page([1], 2)]), /pagination/);
-  assert.throws(() => renderReport([page([1], 2), page([1], 2)]), /pagination/);
+  for (const plan of [false, true]) {
+    assert.throws(() => renderReport([hidden], { plan }), /public Project/);
+    assert.throws(
+      () => renderReport([page([]), hidden], { plan }),
+      /public Project/,
+    );
+    assert.throws(() => renderReport([page([1], 2)], { plan }), /pagination/);
+    assert.throws(
+      () => renderReport([page([1], 2), page([1], 2)], { plan }),
+      /pagination/,
+    );
+  }
 });
 
 test("distinguishes empty milestones, unset status and truncated memberships", () => {
