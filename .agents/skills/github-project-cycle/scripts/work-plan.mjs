@@ -9,6 +9,7 @@ import {
 
 const sections = [
   "Implementation queue",
+  "Human decisions",
   "Pull requests",
   "Waiting on dependencies",
   "Parent outcomes",
@@ -45,7 +46,10 @@ function acceptanceCriteria(body) {
   return section === "_No response_" ? "" : section;
 }
 
-function nextAction(issue, repo, item, prs, criteria) {
+const decisionAction =
+  "Ask the authorized decision maker to record the answer on the issue.";
+
+function nextAction(issue, repo, item, prs, criteria, needsDecision) {
   const blockers = issue.issueDependenciesSummary.blockedBy;
   if (blockers) {
     const visible = issue.blockedBy.nodes.filter(
@@ -62,6 +66,13 @@ function nextAction(issue, repo, item, prs, criteria) {
       `Resolve ${blockers} open ${blockers === 1 ? "prerequisite" : "prerequisites"}. ${links.join(", ")}`,
     ];
   }
+
+  if (needsDecision) return ["Human decisions", decisionAction];
+  if (!issue.labels || issue.labels.pageInfo.hasNextPage)
+    return [
+      "Needs triage",
+      "Verify all issue labels for a pending decision before choosing work.",
+    ];
 
   if (prs.length) {
     if (prs.some((pr) => ["ERROR", "FAILURE"].includes(headCheckState(pr))))
@@ -156,9 +167,20 @@ export function renderWorkPlan(repo, issues) {
     );
     const criteria = acceptanceCriteria(issue.body);
     const prs = openPullRequests(issue, repo.id);
-    const [group, next] = nextAction(issue, repo, item, prs, criteria);
+    const needsDecision = issue.labels?.nodes.some(
+      (label) => label?.name.toLowerCase() === "needs decision",
+    );
+    const [group, next] = nextAction(
+      issue,
+      repo,
+      item,
+      prs,
+      criteria,
+      needsDecision,
+    );
     groups.get(group).push({
       issue,
+      needsDecision,
       next,
       rank: rank < 0 ? options.length : rank,
       criteria,
@@ -183,11 +205,21 @@ export function renderWorkPlan(repo, issues) {
     if (!entries.length) continue;
     lines.push(`### ${group}`, "");
     entries.sort((a, b) => a.rank - b.rank || a.issue.number - b.issue.number);
-    for (const { issue, next, rank, criteria, prs } of entries) {
+    for (const { issue, next, rank, criteria, prs, needsDecision } of entries) {
       const priority = options[rank]?.name ?? "Unranked";
       lines.push(
         `- **${markdownText(priority)}** · ${issueLink(issue)} — ${next}`,
       );
+      const count = issue.assignees?.totalCount;
+      const owners =
+        count === 0
+          ? "Unassigned"
+          : count == null
+            ? "Assignment unreported"
+            : `${count} assigned`;
+      lines.push(`  - ${owners} · [Issue assignees](${issue.url})`);
+      if (needsDecision && group !== "Human decisions")
+        lines.push(`  - Decision pending. ${decisionAction}`);
       if (prs.length)
         lines.push(
           `  - Pull requests: ${pullRequestLinks(issue, prs, { evidence: true })}`,
@@ -201,7 +233,7 @@ export function renderWorkPlan(repo, issues) {
           );
         }
       }
-      if (group === "Parent outcomes")
+      if (group === "Parent outcomes" || needsDecision)
         lines.push(...childEvidence(issue, repo.id));
     }
     lines.push("");

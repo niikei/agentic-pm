@@ -47,6 +47,17 @@ query MilestoneReport(
           url
           state
           stateReason
+          assignees(first: 1) @include(if: $plan) {
+            totalCount
+          }
+          labels(first: 100) @include(if: $plan) {
+            nodes {
+              name
+            }
+            pageInfo {
+              hasNextPage
+            }
+          }
           body @include(if: $plan)
           blockedBy(first: 10) @include(if: $plan) {
             nodes {
@@ -67,6 +78,9 @@ query MilestoneReport(
               url
               state
               isDraft
+              reviewRequests(first: 1) @include(if: $plan) {
+                totalCount
+              }
               reviewDecision @include(if: $plan)
               headRefOid @include(if: $plan)
               commits(last: 1) @include(if: $plan) {
