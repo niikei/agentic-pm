@@ -37,6 +37,22 @@ mise exec -- pnpm --silent reports render weekly-handoff-ja --input snapshot.jso
 
 For a single live read use `reports render developer-triage-ja --github OWNER/REPO`. The report is a dated snapshot. Re-run the command for a fresh observation. Generated files stay local until the user chooses a destination.
 
+## Open a personal task desk
+
+Generate a standalone Japanese desktop page for an operator. The [sample](examples/desk.json) is an invented task list. The command can also read the standard project snapshot or a public GitHub repository.
+
+```sh
+mise exec -- pnpm --silent reports desk > desk.html
+mise exec -- pnpm --silent reports desk --github niikei/agentic-pm > repo-desk.html
+mise exec -- pnpm --silent reports desk --input snapshot.json --owner LOGIN > my-desk.html
+```
+
+Open the local file. With no owner filter the desk covers all open issues and change requests in the input. An exact owner match narrows the entire page. Select a headline number, deadline bar or workflow state to see its task list. Search and expand a task for its action, owner and source. The confirmation queue shows time since the recorded decision flag. Its bars are relative to the longest known wait.
+
+A saved item may carry a calendar `dueDate` (YYYY-MM-DD), `stage` (`ready`, `active` or `waiting`), `nextAction`, and a `question` for a flagged decision. Copy these from the planning record. The next-action panel selects the earliest dated ready or active task with an explicit action and no decision flag. Undated tasks follow dated ones, with ties ordered by ID. When no such task exists, it surfaces the longest known outstanding confirmation. The seven-day chart starts on the capture's Japan calendar date. Overdue, later and undated work have separate totals.
+
+A repository capture supplies open records, assignees and decision flags. Task deadlines and Project workflow state require a planning source. Missing fields stay visible. Re-render to refresh the local file.
+
 ## Prepare a manager's outcomes brief
 
 The recipient can open the standalone HTML file offline or print it. Each goal includes a confirmed result, progress toward its target and a dated source in plain language. The synthetic example distinguishes two sites using a new intake procedure from the effect on waiting time, which has yet to be measured.

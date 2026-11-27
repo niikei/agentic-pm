@@ -30,6 +30,14 @@
           "title": { "$ref": "#/definitions/text" },
           "url": { "$ref": "#/definitions/url" },
           "kind": { "enum": ["work", "change"] },
+          "stage": { "enum": ["active", "ready", "waiting"] },
+          "dueDate": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "format": "date"
+          },
+          "nextAction": { "$ref": "#/definitions/text" },
+          "question": { "$ref": "#/definitions/text" },
           "updatedAt": { "$ref": "#/definitions/time" },
           "needsDecision": { "type": "boolean" },
           "draft": { "type": "boolean" },
