@@ -46,10 +46,10 @@ The owner listing defaults to 30 Projects. If it omits your board, take its numb
 For work without a milestone, start in the selected Project. Replace the placeholders in the native filter and follow an issue to verify its assignees, recorded status and prerequisites. Preserve team decisions such as Later or Backlog until the team revises them.
 
 ```sh
-gh project item-list PROJECT_NUMBER --owner OWNER --limit 100 --query 'repo:OWNER/REPO is:issue is:open no:milestone' --format json --jq '"Showing \(.items | length) of \(.totalCount) matches.", (.items[] | [.content.url, .title, (.status // "Unset")] | @tsv)'
+gh project item-list PROJECT_NUMBER --owner OWNER --limit 100 --query 'repo:OWNER/REPO is:issue is:open no:milestone' --format json --jq '"Showing \(.items | length) of \(.totalCount) matches.", (.items[] | [.content.url, .title, (.status // "Unset"), ((.priority // "—") | tostring)] | @tsv)'
 ```
 
-The first line reports the number shown and the total matching the filter. If more matches exist, raise `--limit` to see more issues or add a Project filter such as `status:"Approved"` inside `--query` when that status exists.
+The first line reports how many matches are shown. Each row gives the issue URL, title, Status and Priority. A dash means the query returned no Priority value. To find a particular priority across the whole board, add the team’s option, such as `priority:"Critical"`, inside `--query`. GitHub filters before applying `--limit`. Check the options with `gh project field-list PROJECT_NUMBER --owner OWNER --limit 50`. You can also filter by a recorded status or raise the limit.
 
 For a selected issue, inspect its assignment, closing PR links, body and recent discussion. A comment can mention work that has no formal closing link. Open a relevant PR to confirm its current draft, review and check status before proposing duplicate work. Treat an unset board status as a triage question. Identify the observable acceptance example or ask what would demonstrate completion.
 
