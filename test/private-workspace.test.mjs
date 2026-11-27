@@ -529,6 +529,36 @@ test("a portfolio check-in shows a bounded sample, explains ties and retains a c
   );
 });
 
+test("compact reminders surface the earliest missed check before newer deadlines and undated intake", (t) => {
+  const { db } = fixture(t);
+  register(db, "pilot", "Pilot", []);
+  const plans = [
+    ["a", { dueDate: "2026-12-16", followUp: "2026-11-28" }],
+    ["b", { dueDate: "2026-11-28" }],
+    ["c", { dueDate: "2026-11-28", followUp: "2026-11-27" }],
+    ["z", { followUp: "2026-11-23" }],
+  ];
+  applyEvents(db, [
+    ...plans.map(([item, dates]) => ({
+      ...events[0],
+      item,
+      event: item,
+      changes: { title: item, status: "waiting", ...dates },
+    })),
+    { ...events[1], changes: { title: "Undated intake", status: "waiting" } },
+  ]);
+  const desk = workDesk(db, undefined, "2026-11-28T00:00:00Z");
+  const section = (full) =>
+    agenda(desk, full).split("## 忘れそうな確認")[1].split("##")[0];
+  const short = section(false);
+  assert.deepEqual(
+    [...short.matchAll(/\*\*(.*?)\*\*/g)].map((match) => match[1]),
+    ["z", "c", "b"],
+  );
+  assert.match(short, /ほか2件/);
+  assert.match(section(true), /\*\*a\*\*[\s\S]*\*\*Undated intake\*\*/);
+});
+
 test("private evidence can open an explicit permalink while the manager draft stays self-contained", (t) => {
   const { dir, db } = fixture(t);
   register(db, "pilot", "試行", [dir]);
