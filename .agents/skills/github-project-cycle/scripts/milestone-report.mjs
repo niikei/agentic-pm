@@ -76,8 +76,8 @@ export function renderReport(pages, { plan = false } = {}) {
   ];
   for (const issue of issues) {
     const state =
-      issue.stateReason === "NOT_PLANNED"
-        ? "Closed (not planned)"
+      issue.state === "CLOSED"
+        ? `Closed (${issue.stateReason?.toLowerCase().replaceAll("_", " ") ?? "reason unreported"})`
         : issue.state.toLowerCase();
     const { completed, total } = issue.subIssuesSummary;
     lines.push(

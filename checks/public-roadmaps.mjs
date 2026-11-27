@@ -39,7 +39,7 @@ for (const { repository, project, milestone } of cases) {
 
     const rows = [
       ...snapshot.matchAll(
-        /^\| \[#[^\n]*?\]\(([^)]+)\) \| (open|closed)(?: \(not planned\))? \|/gim,
+        /^\| \[#[^\n]*?\]\(([^)]+)\) \| (open|closed)(?: \((?:completed|not planned|duplicate|reason unreported)\))? \|/gim,
       ),
     ];
     assert.deepEqual(
