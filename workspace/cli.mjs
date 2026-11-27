@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { parseArgs } from "node:util";
 import { writeGuide } from "./guide.mjs";
 import { exportBundle } from "./okf.mjs";
 import { inspectSource, locate, reviewSources } from "./sources.mjs";
@@ -30,7 +31,7 @@ const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
   okf-refresh DIRECTORY PROJECT
   bundles
   desk [PROJECT]
-  agenda [PROJECT]
+  agenda [PROJECT] [--all]
   manager [PROJECT]`;
 const [directory, command, ...args] = process.argv.slice(2);
 function run() {
@@ -98,10 +99,19 @@ function run() {
               ),
           );
         break;
-      case "agenda":
-        if (args.length <= 1)
-          return agenda(workDesk(db, args[0], new Date().toISOString()));
+      case "agenda": {
+        const { values, positionals } = parseArgs({
+          args,
+          allowPositionals: true,
+          options: { all: { type: "boolean" } },
+        });
+        if (positionals.length <= 1)
+          return agenda(
+            workDesk(db, positionals[0], new Date().toISOString()),
+            values.all,
+          );
         break;
+      }
       case "bundles":
         if (!args.length) return bundles(db);
         break;

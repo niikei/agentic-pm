@@ -36,13 +36,24 @@ export function buildDesk(snapshot, owner) {
       (a.offset ?? Infinity) - (b.offset ?? Infinity) ||
       a.id.localeCompare(b.id, "ja", { numeric: true }),
   );
-  const next = tasks.find(
+  const actionable = tasks.filter(
     (task) =>
       ["active", "ready"].includes(task.stage) &&
       task.nextAction &&
       !task.needsDecision &&
       !task.unassignedProject,
   );
+  const next = actionable[0];
+  const tied = next
+    ? actionable.filter((task) => task.offset === next.offset).length
+    : 0;
+  let nextReason;
+  if (actionable.length === 1)
+    nextReason = "着手できる状態で、次の行動まで記録された作業はこの1件です。";
+  else if (tied > 1)
+    nextReason = `同じ期限条件で着手できる作業が${tied}件あります。案件名・ID順の先頭を表示しています。`;
+  else if (next)
+    nextReason = "着手できる作業の中で、記録された期限が最も早い項目です。";
   const questions = tasks
     .filter((task) => task.needsDecision)
     .sort((a, b) => (b.waitHours ?? -1) - (a.waitHours ?? -1));
@@ -62,6 +73,8 @@ export function buildDesk(snapshot, owner) {
     datesUnknown:
       tasks.length > 0 && tasks.every((task) => task.offset === null),
     next,
+    nextReason,
+    actionable,
     questions,
     days,
     overdue: tasks.filter((task) => task.offset !== null && task.offset < 0)
