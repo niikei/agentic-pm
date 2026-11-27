@@ -37,6 +37,19 @@ mise exec -- pnpm --silent reports render weekly-handoff-ja --input snapshot.jso
 
 For a single live read use `reports render developer-triage-ja --github OWNER/REPO`. The report is a dated snapshot. Re-run the command for a fresh observation. Generated files stay local until the user chooses a destination.
 
+## Refresh the agentic-pm desk
+
+```sh
+mise exec -- pnpm desk:project
+mise exec -- pnpm desk:project manager
+```
+
+Open the printed local path. The operator file is `dist/project-desk/index.html`. Each refresh reads the public repository and Project 1 using your GitHub CLI session with read access. The desk maps Todo and In Progress to their recorded workflow stages. Open issues and PRs each have one task row. Expand a row for its source and formal closing links in the same repository. Open PRs show draft or recorded review status. The merge history includes the past seven days or the repository lifetime, whichever is shorter. Work completed in this window stays visible after it leaves the open queue.
+
+The desk uses GitHub's closing relationships and the PRs in this capture. An issue mentioned only in a comment, a cross-repository link, an abandoned PR or an older merge can have other context on GitHub. Dates and next actions stay unknown unless a planning record supplies them. Reads across GitHub APIs are nontransactional. Retry a refresh if records changed during capture.
+
+The manager file is `dist/project-desk/brief.html`. It renders offline from [dated, reader-facing observations](project/outcomes.json) and can travel on its own. Update these observations when there is new outcome evidence. The brief carries its evidence date, omits Issue and PR URLs, and makes unmeasured impact explicit. File generation is local; each successful refresh replaces its selected output.
+
 ## Open a personal task desk
 
 Generate a standalone Japanese desktop page for an operator. The [sample](examples/desk.json) is an invented task list. The command can also read the standard project snapshot or a public GitHub repository.
@@ -49,7 +62,7 @@ mise exec -- pnpm --silent reports desk --input snapshot.json --owner LOGIN > my
 
 Open the local file. With no owner filter the desk covers all open issues and change requests in the input. An exact owner match narrows the entire page. Collapse the navigation with its chevron to give the work area more width. Select a deadline bar or workflow state to see matching tasks. The confirmation count jumps directly to the questions. Search and expand a task for its action, owner and source. The confirmation queue shows time since the recorded decision flag. Its bars are relative to the longest known wait.
 
-A saved item may carry a calendar `dueDate` (YYYY-MM-DD), `stage` (`ready`, `active` or `waiting`), `nextAction`, and a `question` for a flagged decision. Copy these from the planning record. The next-action panel selects the earliest dated ready or active task with an explicit action and no decision flag. Undated tasks follow dated ones, with ties ordered by ID. When no such task exists, it surfaces the longest known outstanding confirmation. The seven-day chart starts on the capture's Japan calendar date. Overdue, later and undated work have separate totals.
+A saved item may carry a calendar `dueDate` (YYYY-MM-DD), `stage` (`ready`, `active`, `waiting` or `backlog`), `nextAction`, and a `question` for a flagged decision. Copy these from the planning record. The next-action panel selects the earliest dated ready or active task with an explicit action and no decision flag. Undated tasks follow dated ones, with ties ordered by ID. When no such task exists, it surfaces the longest known outstanding confirmation. The seven-day chart starts on the capture's Japan calendar date. Overdue, later and undated work have separate totals.
 
 A repository capture supplies open records, assignees and decision flags. Task deadlines and Project workflow state require a planning source. Missing fields stay visible. Re-render to refresh the local file.
 

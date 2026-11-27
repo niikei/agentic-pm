@@ -777,3 +777,48 @@
     }
   }
 }
+
+@layer delivery-history {
+  .backlog {
+    --swatch: #68758c;
+  }
+  .desk-work {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+  }
+  .change-list > li {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 0.6rem;
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--line);
+    font-size: 0.88rem;
+    overflow-wrap: anywhere;
+  }
+  .window,
+  .change-list time,
+  .change-list small {
+    font-size: 0.77rem;
+    color: var(--muted);
+  }
+  .window {
+    margin: 0.45rem 0;
+  }
+  .change-list small {
+    display: block;
+  }
+  .record-links {
+    margin: 0.35rem 0;
+    padding-inline-start: 0.8rem;
+    border-inline-start: 2px solid var(--line);
+    font-size: 0.84rem;
+  }
+  .record-links li {
+    margin: 0.2rem 0;
+  }
+  .history summary {
+    padding: 0.5rem 0;
+    color: var(--teal);
+  }
+}

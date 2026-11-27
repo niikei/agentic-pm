@@ -30,7 +30,7 @@
           "title": { "$ref": "#/definitions/text" },
           "url": { "$ref": "#/definitions/url" },
           "kind": { "enum": ["work", "change"] },
-          "stage": { "enum": ["active", "ready", "waiting"] },
+          "stage": { "enum": ["active", "ready", "waiting", "backlog"] },
           "dueDate": {
             "type": "string",
             "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",

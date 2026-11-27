@@ -47,6 +47,31 @@ function deadlines(desk) {
   return `<section id="deadlines" class="panel deadline"><div class="section-head"><h2>期限の分布</h2><span>記録済みの期限 · 7日間</span></div><ul class="bars">${bars.join("")}</ul><div class="chart-footer">${jump("overdue", `期限超過 <b>${desk.overdue}</b>`)}${jump("later", `期間後 <b>${desk.later}</b>`)}${jump("undated", `期限未記録 <b>${desk.undated}</b>`)}</div></section>`;
 }
 
+function recordLink(record, kind) {
+  return `<a href="${h(record.url)}">${kind} ${h(record.id)} · ${h(record.title)}</a>`;
+}
+
+function relatedRecords(records, kind) {
+  if (!records?.length) return "";
+  return `<ul class="record-links">${records.map((record) => `<li>${recordLink(record, kind)}${record.state ? ` · ${h(record.state)}` : ""}</li>`).join("")}</ul>`;
+}
+
+function recentWork(desk) {
+  const date = new Intl.DateTimeFormat("ja-JP", {
+    month: "numeric",
+    day: "numeric",
+    timeZone: "Asia/Tokyo",
+  });
+  const rows = desk.recentChanges.map(
+    (change) =>
+      `<li><time datetime="${h(change.at)}">${h(date.format(new Date(change.at)))}</time><div>${recordLink(change, "PR")}${relatedRecords(change.issues, "Issue") || "<small>同じリポジトリの完了対象Issueは未設定</small>"}</div></li>`,
+  );
+  return `<section id="deliveries" class="panel history"><div class="section-head"><h2>最近マージされた変更</h2><span>${rows.length}件</span></div>
+<p class="window">集計開始 ${h(desk.coverageStart.slice(0, 16).replace("T", " "))}（UTC）</p>
+${rows.length ? `<ul class="change-list">${rows.slice(0, 3).join("")}</ul>` : "<p>対象期間のマージはありません。</p>"}
+${rows.length > 3 ? `<details><summary>残り${rows.length - 3}件を表示</summary><ul class="change-list">${rows.slice(3).join("")}</ul></details>` : ""}</section>`;
+}
+
 function taskRow(task) {
   const tone =
     task.offset === null
@@ -56,8 +81,15 @@ function taskRow(task) {
         : task.offset === 0
           ? "today"
           : "";
+  const projectRecord = Boolean(task.projectRecord);
+  const label = projectRecord
+    ? `${task.kind === "work" ? "Issue" : "PR"} `
+    : "";
+  const ties = task.linkedChanges?.length
+    ? ` · 関連PR ${task.linkedChanges.length}件`
+    : "";
   return `<tr data-id="${h(task.id)}" data-stage="${task.stage}" data-date="${h(task.dueDate ?? "")}" data-offset="${task.offset ?? ""}" data-question="${task.needsDecision}">
-<td><span class="key">${h(task.id)}</span><details><summary>${h(task.title)}</summary><div class="notes"><p>${h(task.nextAction ?? "次の行動は未記録です。")}</p>${task.question ? `<p>確認事項 · ${h(task.question)}</p>` : ""}<p>担当 · ${h(task.owners.join("、") || "未割り当て")}</p><a href="${h(task.url)}">元の記録を開く ↗</a></div></details></td><td><span class="status ${task.stage}">${stages[task.stage]}</span></td><td class="due ${tone}">${task.dueDate ? md(task.dueDate) : "未記録"}${tone ? `<small>${due(task)}</small>` : ""}</td></tr>`;
+<td><span class="key">${label}${h(task.id)}${h(ties)}${task.changeState ? ` · ${h(task.changeState)}` : ""}</span><details><summary>${h(task.title)}</summary><div class="notes"><p>${h(task.nextAction ?? "次の行動は未記録です。")}</p>${task.question ? `<p>確認事項 · ${h(task.question)}</p>` : ""}<p>担当 · ${h(task.owners.join("、") || "未割り当て")}</p><a href="${h(task.url)}">${projectRecord ? `${label.trim()}を開く` : "元の記録を開く"} ↗</a>${relatedRecords(task.linkedChanges, "PR")}${relatedRecords(task.linkedIssues, "Issue")}</div></details></td><td><span class="status ${task.stage}">${stages[task.stage]}</span></td><td class="due ${tone}">${task.dueDate ? md(task.dueDate) : "未記録"}${tone ? `<small>${due(task)}</small>` : ""}</td></tr>`;
 }
 
 function register(desk) {
@@ -120,7 +152,7 @@ export function renderDesk(desk) {
   return `<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="text-scale" content="scale"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src data:; script-src 'sha256-${digest}'; base-uri 'none'; form-action 'none'"><title>作業デスク · ${h(desk.project)}</title><style>@font-face{font-family:"Pretendard JP Variable";src:url(data:font/woff2;base64,${font}) format("woff2");font-weight:100 900;font-display:swap}
 ${styles}</style></head>
-<body><a class="skip" href="#overview">本文へ</a><div class="shell"><aside class="rail"><div class="rail-head"><div class="brand"><i aria-hidden="true"></i>作業デスク</div><button type="button" class="nav-toggle" hidden aria-controls="desk-nav" aria-expanded="true" aria-label="ナビを閉じる" title="ナビを閉じる"><span aria-hidden="true">‹</span></button></div><nav id="desk-nav" aria-label="ページ内ナビゲーション"><a href="#overview"><span>▦</span>概要</a><a href="#tasks" data-filter="all"><span>☰</span>タスク一覧</a><a href="#deadlines"><span>▥</span>期限</a><a href="#questions"><span>◇</span>確認事項</a></nav></aside>
+<body><a class="skip" href="#overview">本文へ</a><div class="shell"><aside class="rail"><div class="rail-head"><div class="brand"><i aria-hidden="true"></i>作業デスク</div><button type="button" class="nav-toggle" hidden aria-controls="desk-nav" aria-expanded="true" aria-label="ナビを閉じる" title="ナビを閉じる"><span aria-hidden="true">‹</span></button></div><nav id="desk-nav" aria-label="ページ内ナビゲーション"><a href="#overview"><span>▦</span>概要</a><a href="#tasks" data-filter="all"><span>☰</span>タスク一覧</a><a href="#deadlines"><span>▥</span>期限</a><a href="#questions"><span>◇</span>確認事項</a>${desk.recentChanges ? '<a href="#deliveries"><span>↳</span>マージ履歴</a>' : ""}</nav></aside>
 <main id="overview"><header><div><p class="project">${h(desk.project)} <span class="scope">／ ${h(desk.owner || "全担当")}</span></p><h1>作業の見通し</h1></div><div class="stamp">基準日時 <time datetime="${h(desk.asOf)}">${h(asOf)} JST</time></div></header>
 <div class="top">${focusCard(desk)}${deadlines(desk)}</div>
 <div class="stats">${stats
@@ -131,6 +163,6 @@ ${styles}</style></head>
         : jump(count === null ? "undated" : filter, contents);
     })
     .join("")}</div>
-<div class="lower">${register(desk)}<div class="side">${questions(desk)}${distribution(desk)}</div></div></main></div>
+<div class="lower">${desk.recentChanges ? `<div class="desk-work">${register(desk)}${recentWork(desk)}</div>` : register(desk)}<div class="side">${questions(desk)}${distribution(desk)}</div></div></main></div>
 <template id="font-license"><pre>${h(license)}</pre></template><script>${script}</script></body></html>\n`;
 }
