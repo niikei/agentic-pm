@@ -15,8 +15,20 @@ import { inspectSource } from "./sources.mjs";
 
 const text = { type: "string", minLength: 1, pattern: "\\S" };
 const id = { type: "string", pattern: "^[a-z][a-z0-9-]{0,47}$" };
+const date = { type: "string", format: "date" };
 const instant = { type: "string", format: "instant" };
 const fields = {
+  forecast: {
+    type: "object",
+    required: ["from", "origin", "basis"],
+    additionalProperties: false,
+    properties: {
+      from: date,
+      through: date,
+      origin: { enum: ["source", "agent"] },
+      basis: text,
+    },
+  },
   meeting: {
     type: "object",
     required: ["start"],
@@ -29,8 +41,8 @@ const fields = {
   question: text,
   estimate: text,
   hypothesis: text,
-  dueDate: { type: "string", format: "date" },
-  followUp: { type: "string", format: "date" },
+  dueDate: date,
+  followUp: date,
   managerUpdate: text,
 };
 const validDate = (value) => {
@@ -196,6 +208,9 @@ export function applyEvents(db, events) {
     events.map((event) => {
       if (!validateEvent(event))
         throw new Error(ajv.errorsText(validateEvent.errors));
+      const forecast = event.changes.forecast;
+      if (forecast?.through && forecast.through < forecast.from)
+        throw new Error("Forecast end precedes its start.");
       const meeting = event.changes.meeting;
       if (meeting?.end && Date.parse(meeting.end) <= Date.parse(meeting.start))
         throw new Error("Meeting end must follow its start.");

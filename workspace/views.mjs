@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { renderDesk } from "../reports/desk/html.mjs";
 import { buildDesk } from "../reports/desk/model.mjs";
 import { markdownText as md } from "../reports/writers/markdown.mjs";
-import { labels, meetingTime } from "./fields.mjs";
+import { forecastLabel, labels, meetingTime } from "./fields.mjs";
 import { sourceStatus } from "./sources.mjs";
 import { history, items, projects, transaction } from "./store.mjs";
 
@@ -36,6 +36,7 @@ export function workDesk(db, project, asOf) {
       needsDecision: Boolean(record.question),
       meeting: record.meeting,
       meetingLabel: record.meeting && meetingTime(record.meeting),
+      forecast: record.forecast && forecastLabel(record.forecast),
       estimate: record.estimate,
       followUp: record.followUp,
       hypothesis: record.hypothesis,
@@ -119,6 +120,12 @@ export function agenda(desk, all = false) {
     desk.tasks.filter((t) => t.estimate).map((t) => describe(t, t.estimate)),
     "作業時間の見積もりは未記録です。",
   );
+  const forecasts = desk.tasks.filter((task) => task.forecast);
+  if (forecasts.length)
+    section(
+      "仮の見通し",
+      forecasts.map((task) => describe(task, task.forecast)),
+    );
   section(
     "会議の予定",
     desk.meetings.map((task) => describe(task, task.meetingLabel)),

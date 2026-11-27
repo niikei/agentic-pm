@@ -659,3 +659,75 @@ test("a replaced destination receives no new project pages and a recognizable le
   assert.throws(() => refreshBundle(db, target, "pilot"), /identity changed/);
   assert.deepEqual(readdirSync(target), []);
 });
+
+test("a sourced proposal and agent forecast remain distinct from effort and a confirmed deadline", (t) => {
+  const { db, dir } = fixture(t);
+  register(db, "pilot", "試行", []);
+  const forecast = {
+    from: "2026-12-04",
+    origin: "source",
+    basis: "The slide proposes a date pending approval.",
+  };
+  const entry = {
+    ...events[0],
+    changes: {
+      title: "Prepare distribution",
+      status: "ready",
+      estimate: "1.5 person-days if a reviewer is available.",
+      forecast,
+    },
+  };
+  applyEvents(db, [entry]);
+  const at = "2026-12-01T00:00:00Z";
+  const first = workDesk(db, "pilot", at);
+  assert.equal(first.undated, 1);
+  assert.equal(
+    first.days.reduce((total, day) => total + day.count, 0),
+    0,
+  );
+  assert.match(agenda(first), /資料上の案/);
+  const next = {
+    ...entry,
+    event: "scenario",
+    base: 1,
+    changes: {
+      forecast: {
+        from: "2026-12-05",
+        through: "2026-12-08",
+        origin: "agent",
+        basis: "One review slot assumed.",
+      },
+    },
+  };
+  assert.throws(
+    () =>
+      applyEvents(db, [
+        {
+          ...next,
+          changes: { forecast: { ...forecast, through: "2026-12-03" } },
+        },
+      ]),
+    /precedes/,
+  );
+  applyEvents(db, [next]);
+  assert.match(
+    agenda(workDesk(db, "pilot", at)),
+    /AIの試算.*2026-12-05〜2026-12-08/,
+  );
+  const target = join(dir, "forecast");
+  exportBundle(db, target, "pilot");
+  const page = readFileSync(join(target, "p-pilot_i-reader-test.md"), "utf8");
+  assert.match(page, /x-agentic-pm-forecast-from: "2026-12-05"/);
+  assert.doesNotMatch(page, /x-agentic-pm-due:/);
+  applyEvents(db, [
+    {
+      ...next,
+      event: "committed",
+      base: 2,
+      changes: { dueDate: "2026-12-07", forecast: null },
+    },
+  ]);
+  const final = workDesk(db, "pilot", at);
+  assert.equal(final.undated, 0);
+  assert.doesNotMatch(agenda(final), /仮の見通し/);
+});

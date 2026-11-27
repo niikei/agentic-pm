@@ -1,5 +1,6 @@
 export const labels = {
   meeting: "会議の時間",
+  forecast: "仮の見通し",
   status: "作業状態",
   nextAction: "次の行動",
   question: "要確認",
@@ -26,4 +27,12 @@ export function meetingTime(meeting) {
     ? localTime.formatRange(start, new Date(meeting.end))
     : localTime.format(start);
   return `${range} JST`;
+}
+
+export function forecastLabel(forecast) {
+  const dates =
+    forecast.through && forecast.through !== forecast.from
+      ? `${forecast.from}〜${forecast.through}`
+      : forecast.from;
+  return `${forecast.origin === "agent" ? "AIの試算" : "資料上の案"} · ${dates}（${forecast.basis}）`;
 }

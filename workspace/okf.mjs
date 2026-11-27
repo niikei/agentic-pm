@@ -3,10 +3,17 @@ import { join } from "node:path";
 import { stages } from "../reports/desk/model.mjs";
 import { markdownText } from "../reports/writers/markdown.mjs";
 import { sourceUrl } from "../reports/writers/shared.mjs";
-import { labels, meetingTime } from "./fields.mjs";
+import { forecastLabel, labels, meetingTime } from "./fields.mjs";
 import { fieldSources, history, items } from "./store.mjs";
 
 const status = { ...stages, done: "完了" };
+
+function fieldValue(item, key) {
+  if (key === "status") return status[item.status];
+  if (key === "meeting") return meetingTime(item.meeting);
+  if (key === "forecast") return forecastLabel(item.forecast);
+  return item[key];
+}
 
 function concept(item, events) {
   const sourceOf = fieldSources(events);
@@ -24,6 +31,8 @@ function concept(item, events) {
     ...Object.entries({
       "x-agentic-pm-work-status": item.status,
       "x-agentic-pm-due": item.dueDate,
+      "x-agentic-pm-forecast-from": item.forecast?.from,
+      "x-agentic-pm-forecast-through": item.forecast?.through,
       "x-agentic-pm-follow-up": item.followUp,
       "x-agentic-pm-meeting-start": item.meeting?.start,
     })
@@ -42,7 +51,7 @@ function concept(item, events) {
   for (const [key, label] of Object.entries(labels)) {
     if (!item[key]) continue;
     lines.push(
-      `- **${label}** · ${markdownText(key === "status" ? status[item.status] : key === "meeting" ? meetingTime(item.meeting) : item[key])}[^${sourceOf.get(key).event}]`,
+      `- **${label}** · ${markdownText(fieldValue(item, key))}[^${sourceOf.get(key).event}]`,
     );
   }
   lines.push("");
