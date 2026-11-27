@@ -90,4 +90,10 @@ gh api graphql -f id="$event_node" -f query='
   }' --jq '.data.node.duplicateOf | select(.repository.visibility == "PUBLIC") | .url'
 ```
 
-A closure reason supports the recorded disposition. Verifying implementation or shipment requires contemporaneous PR, test or release evidence. Leave ownership and approval unknown when the available history does not establish them. The milestone reporter shows current GitHub state.
+A closure reason supports the recorded disposition. When a comment names a version, check the release by its exact tag in the publishing repository.
+
+```sh
+gh api 'repos/OWNER/REPO/releases/tags/TAG' --jq '{html_url, tag_name, draft, prerelease, published_at, updated_at, body}'
+```
+
+Check that `draft` is false and `published_at` is at or before the UTC cutoff. Preserve the prerelease designation. Use the current notes as historical evidence only if `updated_at` is also at or before the cutoff and the notes identify the issue, canonical duplicate target or corresponding change. If the release record was updated later, look for a dated changelog revision available by the cutoff. Cite the release and describe the change its notes document. Leave test results, deployment, ownership and approval unknown unless dated evidence establishes them. The milestone reporter shows current GitHub state.
