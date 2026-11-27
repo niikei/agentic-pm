@@ -1,10 +1,19 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { calendar } from "../trials/workweek/case.mjs";
+import { reveal } from "../trials/workweek/fixture.mjs";
+import { score as scoreState } from "../trials/workweek/score.mjs";
 import { capture } from "../workspace/intake.mjs";
 import { inspectSource } from "../workspace/sources.mjs";
 import { openWorkspace } from "../workspace/store.mjs";
@@ -115,7 +124,114 @@ test("the workplace trial scores the observable handoff and rejects a stale dead
     const heads = (dir) =>
       JSON.parse(readFileSync(join(dir, "trial.json"), "utf8")).heads;
     assert.deepEqual(heads(root), heads(second));
-  } finally {
+    const days = calendar(monday);
+    const meta = { heads: heads(root) };
+    const stage = (day) => reveal(root, meta, days, day);
+    assert.throws(() => stage("friday"), /before/);
+    const purchasing = join(root, "notes", "購買確認.md");
+    writeFileSync(purchasing, "Operator addition");
+    assert.throws(() => stage("thursday"), /different content/);
+    assert.equal(readFileSync(purchasing, "utf8"), "Operator addition");
+    rmSync(purchasing);
+    stage("thursday");
+    stage("thursday");
+    const retry = receipt("relay", "Retry-check.csv"),
+      quote = receipt("notes", "購買確認.md");
+    capture(db, desk, {
+      events: [
+        {
+          ...row,
+          file: retry,
+          observed: days.thursday,
+          event: "tested",
+          item: "retry",
+          base: 1,
+          changes: { status: "done" },
+        },
+        {
+          ...row,
+          project: "inbox",
+          file: quote,
+          observed: days.thursday,
+          event: "assigned",
+          item: "question",
+          base: 1,
+          changes: { status: "done" },
+        },
+        {
+          ...changes(
+            quote,
+            "battery",
+            { title: "Battery quotation", status: "waiting" },
+            "supplies",
+          ),
+          observed: days.thursday,
+        },
+      ],
+      reviewed: [retry, quote],
+    });
+    score("thursday", 0);
+    stage("friday");
+    const decision = receipt("notes", "受入結果.md");
+    capture(db, desk, {
+      events: [
+        {
+          ...changes(decision, "instructions", {
+            title: "Prepare one-page instructions",
+            status: "ready",
+          }),
+          observed: friday,
+        },
+      ],
+      reviewed: [decision],
+    });
+    const report = join(desk, "friday-report.md");
+    writeFileSync(report, "main に統合しました。");
+    assert.equal(score("friday", 1).readerPreference, false);
+    writeFileSync(
+      report,
+      "限定試行は25人まで認められました。全面展開と納品日は未定です。",
+    );
+    score("friday", 0);
+    // Close writers before copying the database and its generated notes.
     db.close();
+    const restored = join(parent, "restored");
+    cpSync(desk, restored, { recursive: true });
+    assert.equal(
+      scoreState(root, meta, days, "next-monday", restored).recoveryIsolated,
+      false,
+    );
+    const recovered = openWorkspace(restored);
+    try {
+      capture(recovered, restored, {
+        events: [
+          {
+            ...row,
+            item: "reviewer",
+            event: "requested",
+            observed: days.nextMonday,
+            changes: {
+              title: "Ask operations for a reviewer",
+              status: "waiting",
+            },
+          },
+        ],
+        reviewed: [],
+      });
+    } finally {
+      recovered.close();
+    }
+    writeFileSync(
+      join(restored, "handover-next.md"),
+      "原稿を作成。運営からの担当者回答待ち。",
+    );
+    const recoveredScore = run("score", root, "next-monday", restored);
+    assert.equal(
+      recoveredScore.status,
+      0,
+      recoveredScore.stdout || recoveredScore.stderr,
+    );
+  } finally {
+    if (db.isOpen) db.close();
   }
 });

@@ -2,7 +2,7 @@
 
 Keep each repository, shared folder and Obsidian vault where it already lives. A project has a short ID and can refer to several directories. Projects can share a vault. Registering a directory records its location. The CLI reads selected update files and writes to a separate private workspace. GitHub issues remain authoritative for work tracked on GitHub.
 
-Try the [three-day workplace trial](../trials/workweek/README.md) with synthetic records before connecting an employer’s sources.
+Try the [workplace trial and weekly recovery](../trials/workweek/README.md) with synthetic records before connecting an employer’s sources.
 
 ## Set up on Windows
 

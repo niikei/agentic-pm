@@ -1,6 +1,6 @@
-# A three-day workplace trial
+# A workplace week across two repositories
 
-Can a new chat give the operator the right next action and a manager a usable update after a deadline changes? This case uses two local Git repositories, shared Japanese notes and a private desk. It needs no GitHub project, company files or external benchmark services. Agent inference uses the operator's approved client.
+Can a new chat give the operator the right next action and a manager a usable update after a deadline changes? The first three days test intake and handoff. The full week adds fresh test evidence, a reassigned question, a limited approval and recovery on the following Monday. This case uses two local Git repositories, shared Japanese notes and a private desk. It needs no GitHub project, company files or external benchmark services. Agent inference uses the operator's approved client.
 
 ## Run the case
 
@@ -28,6 +28,36 @@ node trials/workweek/run.mjs score $trial wednesday
 
 Setup defaults to the fictional week starting 2026-11-30. An optional ISO Monday after the directory selects another week. Use the same date and a fresh folder for each client. Prompts establish fictional observation dates. The workspace's generated-at clock still shows actual time.
 
+## Finish the week
+
+From the operator checkout, reveal the Thursday inputs. This adds a synthetic retry-test CSV in a real local Git commit and a purchasing clarification in the notes folder. Only the scheduled source files are introduced. The next fresh chat receives the Thursday brief. This is the first time the operator supplies a recurring audience preference.
+
+```powershell
+node trials/workweek/run.mjs reveal $trial thursday
+node trials/workweek/run.mjs brief $trial thursday
+# After the session:
+node trials/workweek/run.mjs score $trial thursday
+node trials/workweek/run.mjs reveal $trial friday
+node trials/workweek/run.mjs brief $trial friday
+# After the session:
+node trials/workweek/run.mjs score $trial friday
+```
+
+The operator plays the part of the two teams publishing evidence. Reveal can be retried with the same inputs. It refuses conflicting file contents or an unexpected repository revision. Do not reveal Friday until the Thursday checkpoint is recorded. The CSV simulates a device result; the local Git commit is real.
+
+For the following Monday, close desk writers and copy the whole desk to a **new** private folder outside Git. Leave the source repositories and notes where they are. In PowerShell:
+
+```powershell
+$restored = Join-Path $trial 'resumed-desk'
+if (Test-Path $restored) { throw 'Choose a new restore folder.' }
+Copy-Item -LiteralPath (Join-Path $trial 'desk') -Destination $restored -Recurse
+node trials/workweek/run.mjs brief $trial next-monday
+# Open only $restored in a fresh chat. After its reply:
+node trials/workweek/run.mjs score $trial next-monday $restored
+```
+
+On macOS or Linux, use an equivalent recursive copy into a new directory. A directory such as `old-desk/AGENTS.md` in a reply is a reason to verify which copy the client actually opened. Keep approval prompts and operator repairs in the separate run notes.
+
 ## Read the result
 
 The scorer returns one Boolean per objective check and exits with status 1 if any check fails. It checks original source content and Git state, citations to both delivery records, unresolved inbox intake, the originally recorded deadline, its withdrawal, the offset-aware meeting time and the saved handoff's basic audience boundaries. It does not assign an overall language-quality grade. Run and keep each checkpoint before advancing the case.
@@ -40,6 +70,17 @@ Read the Wednesday file and chat reply. Record **pass**, **fail**, or **unobserv
 | Engineering progress      | The screen shows the receipt number in the internal environment. Integration of the retry change is distinguished from an actual disconnect-and-retry test. Production release is unverified.    |
 | Next action               | The operator can reproduce the pending retry test and check for double registration. The two mentions of this work did not create competing tasks.                                               |
 | Audience and uncertainty  | The handoff is at most three Japanese sentences, understandable without GitHub, and keeps the private reminder and the unidentified quotation out. The latter remains available to the operator. |
+
+For the remaining phases also check the following outcomes by reading the source, the private desk and the audience-specific file.
+
+| Judgment                  | Passing evidence                                                                                                                                                                                                                    |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Thursday test and routing | The recorded device case made two requests, stored one receipt and produced zero duplicates. Scope the finding to that case. The battery quote has one active home in supplies; the retired inbox entry still explains its history. |
+| Friday decision           | The review took place. Up to 25 people may join the limited trial. Broad deployment and the delivery date remain undecided. Preparing the one-page operator instructions is the next action.                                        |
+| Recurring reader          | Friday’s report fits three plain-language sentences, covers both teams and protects private reminders. Friday’s brief deliberately does not repeat Thursday’s prohibited engineering terms.                                         |
+| Restored handoff          | The new operator can draft the instructions while waiting for the reviewer assignment. The quote is waiting on the supplier separately. Preserve Friday’s decisions and avoid reopening the completed retry test.                   |
+
+The extended machine checks verify the staged Git change, citations to the CSV and review minutes, the intake routing, saved report files, explicit terminology and restoration of the original event histories. Semantic judgments remain part of the read-through, including whether the limited trial was mistaken for a production release.
 
 Record client/surface, commit, scenario Monday, automated checks, reading judgments, number of **unplanned** operator prompts and a brief reason for each. Count a clarification, correction or manual repair separately from a routine tool approval. Record first-pass results before any repair. A cold handoff uses no Monday or Tuesday transcript. Local setup time, model time and human effort are separate observations. A solo synthetic trial cannot establish time saved in a managed workplace.
 
