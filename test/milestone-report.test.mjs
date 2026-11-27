@@ -68,6 +68,7 @@ test("counts paginated milestone issues once, including issues off the board", (
     /\*\*Open\*\* 1 · \*\*Closed\*\* 1 · \*\*Open with blockers\*\* 1/,
   );
   assert.match(report, /In Progress &#124; &#64;all \| 1 \| 1\/2/);
+  assert.match(report, /\| Closed sub-issues \|/);
   assert.match(report, /Closed \(not planned\) \| Off board/);
   assert.match(report, /Blocker counts cover linked GitHub issues/);
   assert.doesNotMatch(report, /Unrelated/);
@@ -299,7 +300,10 @@ test("keeps blockers, parents, PRs and incomplete inputs out of the implementati
   const plan = renderReport([input], { plan: true });
   assert.doesNotMatch(plan, /Implementation queue|private\/92/);
   assert.match(plan, /Resolve 2 open prerequisites.*#91.*Issue relationships/);
-  assert.match(plan, /Verify the completed children/);
+  assert.match(
+    plan,
+    /closure reasons and verify the parent outcome\. 1\/1 child issues closed/,
+  );
   assert.match(plan, /Continue the draft implementation/);
   assert.match(plan, /Add the issue to the Project/);
   assert.match(plan, /Inspect the remaining linked PRs/);

@@ -92,7 +92,7 @@ You can run the plan against an existing public Project. For ranked work, use a 
 mise exec -- node scripts/milestone-report.mjs niikei/agentic-pm 1 3 --plan
 ```
 
-The plan reads open milestone issues. Within each section it uses the Project's option order, places unranked items last and breaks ties by issue number. The implementation queue gives a pickup or continuation step and quotes the issue's criteria. The other sections identify linked PRs, unresolved prerequisites, parent outcomes and issues that need triage. A parent whose children are complete still needs its outcome verified.
+The plan reads open milestone issues. Within each section it uses the Project's option order, places unranked items last and breaks ties by issue number. The implementation queue gives a pickup or continuation step and quotes the issue's criteria. The other sections identify linked PRs, unresolved prerequisites, parent outcomes and issues that need triage. The child progress fraction counts closed sub-issues, including those closed as not planned. When all children have closed, review their closure reasons and verify the parent outcome against its acceptance criteria.
 
 The queue recognizes the board's **Todo** and **In Progress** statuses. Review custom statuses, missing memberships and missing or complex acceptance criteria on the issue. The plan shows links to open PRs and blockers in the selected public repository. If the only open implementation PR is in another public repository, follow the issue to inspect it before starting work. Operators confirm decisions and permissions before acting.
 
