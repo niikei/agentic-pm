@@ -21,6 +21,14 @@ function concept(item, events) {
     `title: ${JSON.stringify(item.title)}`,
     `x-agentic-pm-project: ${JSON.stringify(item.project)}`,
     `x-agentic-pm-revision: ${item.revision}`,
+    ...Object.entries({
+      "x-agentic-pm-work-status": item.status,
+      "x-agentic-pm-due": item.dueDate,
+      "x-agentic-pm-follow-up": item.followUp,
+      "x-agentic-pm-meeting-start": item.meeting?.start,
+    })
+      .filter(([, value]) => value)
+      .map(([key, value]) => `${key}: ${JSON.stringify(value)}`),
     "sources:",
   ];
   for (const { event, source, permalink } of used) {
