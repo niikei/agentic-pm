@@ -91,28 +91,32 @@ function nextAction(issue, repo, item, prs, criteria) {
       : "Add the issue to the Project or confirm it is out of scope.";
     return ["Needs triage", next];
   }
+  const status = item.fieldValueByName?.name;
+  if (status !== "In Progress" && status !== "Todo") {
+    const next = status
+      ? `Confirm the next action for Project status **${markdownText(status)}** with the issue owner.`
+      : "Confirm the Project status and next action with the issue owner.";
+    return ["Needs triage", next];
+  }
   if (!criteria)
     return [
       "Needs triage",
       "Review the issue and confirm its acceptance criteria before implementation.",
     ];
-  const status = item.fieldValueByName?.name;
   if (status === "In Progress")
     return ["Implementation queue", "Continue the active implementation."];
-  if (status === "Todo")
-    return [
-      "Implementation queue",
-      "Pick up the issue and move it to In Progress.",
-    ];
   return [
-    "Needs triage",
-    "Confirm the Project status and next action with the issue owner.",
+    "Implementation queue",
+    "Pick up the issue and move it to In Progress.",
   ];
 }
 
 export function renderWorkPlan(repo, issues) {
   const project = repo.owner.projectV2;
-  const options = project.priority?.options ?? [];
+  const priorityField = project.fields.nodes.find(
+    (field) => field?.name === "Priority",
+  );
+  const options = priorityField?.options ?? [];
   const groups = new Map(sections.map((section) => [section, []]));
 
   const openIssues = issues.filter((issue) => issue.state === "OPEN");
@@ -141,6 +145,11 @@ export function renderWorkPlan(repo, issues) {
   ];
   if (!openIssues.length)
     return [...lines, "No open milestone issues."].join("\n");
+  if (!priorityField)
+    lines.push(
+      "This Project has no single-select Priority field. Issues within each section are ordered by issue number.",
+      "",
+    );
   for (const [group, entries] of groups) {
     if (!entries.length) continue;
     lines.push(`### ${group}`, "");

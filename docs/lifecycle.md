@@ -81,7 +81,7 @@ and next action. [Published example](https://github.com/niikei/agentic-pm/issues
 
 ### Generate an executable work plan
 
-Add a single-select **Priority** field to the Project. Order its options from highest to lowest. This Project uses High, Normal and Low. Put each deliverable's verifiable criteria under an **Acceptance criteria** heading on its issue, and use **Blocked by** for prerequisites.
+You can run the plan against an existing public Project. For ranked work, use a single-select **Priority** field and order its options from highest to lowest. Without that field, the plan marks issues **Unranked** and orders them by issue number within each section. This Project uses High, Normal and Low. Put each deliverable's verifiable criteria under an **Acceptance criteria** heading on its issue, and use **Blocked by** for prerequisites.
 
 ```sh
 mise exec -- node scripts/milestone-report.mjs niikei/agentic-pm 1 3 --plan
