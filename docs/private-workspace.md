@@ -78,4 +78,12 @@ node workspace/cli.mjs $desk okf "C:\Notes\Work\Pilot snapshot 01" pilot
 
 Each work item has a Markdown page, portable links from the index, and field-level source notes. The private bundle includes working hypotheses and source labels. Readers may edit or move this copy. Use a fresh destination for a later snapshot to preserve edits. Plain notes, Obsidian wikilinks and properties in other folders keep their original form. This workflow supports one-way export. Changes to an exported note can be submitted as new evidence in a later intake.
 
+For a stable link from your existing daily notes, bind a **new, dedicated** subfolder to one project with `okf-refresh`. The agent can use `bundles` to recover the destination and run the same command after later intake. The workspace remembers the last generated text. It preserves text you append after a generated note, including a personal memo or wikilinks, and leaves unrelated files alone.
+
+```powershell
+node workspace/cli.mjs $desk okf-refresh "C:\Notes\Work\Pilot desk" pilot
+```
+
+If you edit generated prose or its frontmatter and that record later changes, the command lists the conflict and returns status 2. A removed note also stays removed. Review a fresh `okf` snapshot alongside your edit. To accept its generated section, copy that section into the bound note, keep your own additions below it, and refresh again. Other records can still refresh. The index advances once its linked pages are ready. Finish edits to a generated note before refreshing it. If another writer interrupts a save, a `.save-…` folder can retain the original or proposed file for recovery.
+
 Close the CLI before copying the private workspace for backup. Restore the whole folder on a local disk with the same access restrictions. Use `items` and `history` to resume from another approved session.
