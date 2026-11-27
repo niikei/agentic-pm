@@ -134,6 +134,11 @@ function nextAction(issue, repo, item, prs, criteria, needsDecision) {
       `${next} ${completed}/${total} children complete.`,
     ];
   }
+  if (repo.owner.projectV2.closed)
+    return [
+      "Needs triage",
+      "Confirm the next action with the issue assignees or maintainers.",
+    ];
   if (!item) {
     const next = issue.projectItems.pageInfo.hasNextPage
       ? "Verify membership in the selected Project."
@@ -183,7 +188,7 @@ export function renderWorkPlan(repo, issues) {
   const priorityField = project.fields.nodes.find(
     (field) => field?.name === "Priority",
   );
-  const options = priorityField?.options ?? [];
+  const options = project.closed ? [] : (priorityField?.options ?? []);
   const groups = new Map(sections.map((section) => [section, []]));
 
   const openIssues = issues.filter((issue) => issue.state === "OPEN");
@@ -221,9 +226,14 @@ export function renderWorkPlan(repo, issues) {
     `[Milestone](${repo.milestone.url}) · [Project](${project.url})`,
     "",
   ];
+  if (project.closed)
+    lines.push(
+      "The selected Project is closed. Choose an open Project for current status and priority. Issues here are ordered by number within each section.",
+      "",
+    );
   if (!openIssues.length)
     return [...lines, "No open milestone issues."].join("\n");
-  if (!priorityField)
+  if (!project.closed && !priorityField)
     lines.push(
       "This Project has no single-select Priority field. Issues within each section are ordered by issue number.",
       "",
