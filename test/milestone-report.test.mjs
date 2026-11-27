@@ -478,3 +478,56 @@ test("preserves the closure evidence available at each Vite 5.0 handoff", () => 
     );
   }
 });
+
+test("marks confirmed merge conflicts on the affected PRs while preserving other evidence", () => {
+  const input = planningPage([1]);
+  const [issue] = input.data.repository.milestone.issues.nodes;
+  const pr = {
+    number: 11,
+    url: "https://example.org/pull/11",
+    repository: { id: "repo" },
+    state: "OPEN",
+    isDraft: true,
+    mergeable: "CONFLICTING",
+    headRefOid: "head",
+    commits: {
+      nodes: [
+        { commit: { oid: "head", statusCheckRollup: { state: "SUCCESS" } } },
+      ],
+    },
+    reviewDecision: "REVIEW_REQUIRED",
+    reviewRequests: { totalCount: 0 },
+  };
+  const other = {
+    ...pr,
+    number: 12,
+    url: "https://example.org/pull/12",
+    isDraft: false,
+    mergeable: "UNKNOWN",
+  };
+  issue.closedByPullRequestsReferences.nodes = [other, pr];
+  const plan = renderReport([input], { plan: true });
+  assert.match(plan, /Resolve the marked merge conflicts/);
+  assert.match(
+    plan,
+    /pull\/11\) \(draft\) \(merge conflict\) \(checks: success, review: review required/,
+  );
+  assert.doesNotMatch(plan, /pull\/12\) \(merge conflict\)/);
+  assert.doesNotMatch(renderReport([input]), /merge conflict/);
+
+  pr.commits = {
+    nodes: [
+      { commit: { oid: "head", statusCheckRollup: { state: "FAILURE" } } },
+    ],
+  };
+  const failed = renderReport([input], { plan: true });
+  assert.match(failed, /Investigate the failing checks/);
+  assert.match(
+    failed,
+    /pull\/11\) \(draft\) \(merge conflict\) \(checks: failure/,
+  );
+
+  issue.closedByPullRequestsReferences.nodes = [other];
+  assert.match(renderReport([input], { plan: true }), /Review the open PR/);
+  assert.doesNotMatch(renderReport([input], { plan: true }), /merge conflict/);
+});

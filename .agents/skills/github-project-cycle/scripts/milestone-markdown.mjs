@@ -37,7 +37,8 @@ export function pullRequestLinks(issue, openPRs, { evidence = false } = {}) {
     const review =
       pr.reviewDecision?.toLowerCase().replaceAll("_", " ") ?? "unreported";
     const requests = pr.reviewRequests?.totalCount ?? "unreported";
-    return `${link} (checks: ${checks}, review: ${review}, outstanding review requests: ${requests})`;
+    const conflict = pr.mergeable === "CONFLICTING" ? " (merge conflict)" : "";
+    return `${link}${conflict} (checks: ${checks}, review: ${review}, outstanding review requests: ${requests})`;
   });
   if (pageInfo.hasNextPage) links.push(`[See issue](${issue.url})`);
   return links.join(", ") || "—";
