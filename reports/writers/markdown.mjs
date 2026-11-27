@@ -15,6 +15,8 @@ function text(value) {
     );
 }
 
+export { text as markdownText };
+
 function sourceItem({ id, title, url }) {
   const label = [text(id), text(title)].filter(Boolean).join(" ");
   const source = sourceUrl(url);

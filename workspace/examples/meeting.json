@@ -1,0 +1,32 @@
+[
+  {
+    "event": "review-request",
+    "project": "pilot",
+    "item": "reader-test",
+    "base": 0,
+    "observed": "2026-11-27",
+    "source": "架空の定例会議事録、決定事項2",
+    "changes": {
+      "title": "案内文の読み合わせを準備する",
+      "status": "ready",
+      "nextAction": "案内文の初稿を作り、読み合わせで確認する二つの表現を選ぶ",
+      "dueDate": "2026-12-02",
+      "estimate": "初稿は約半日。用語の確認相手が当日つかまる場合の見積もり。",
+      "managerUpdate": "案内文の対象を初回利用者に絞った。12月2日の読み合わせで表現を確認する。"
+    }
+  },
+  {
+    "event": "unassigned-question",
+    "project": "inbox",
+    "item": "meeting-owner",
+    "base": 0,
+    "observed": "2026-11-27",
+    "source": "架空の予定表からのコピー、金曜日の打合せ",
+    "changes": {
+      "title": "金曜の打合せの対象案件を確認する",
+      "status": "waiting",
+      "question": "この打合せはどの案件のものか？",
+      "followUp": "2026-11-30"
+    }
+  }
+]
