@@ -250,3 +250,46 @@ test("keeps blockers, parents, PRs and incomplete inputs out of the implementati
   input.data.repository.owner.projectV2.public = false;
   assert.throws(() => renderReport([input], { plan: true }), /public Project/);
 });
+
+test("lists bounded parent evidence without enrolling children into the milestone queue", () => {
+  const input = planningPage([1]);
+  const [parent] = input.data.repository.milestone.issues.nodes;
+  parent.subIssuesSummary = { total: 5, completed: 1 };
+  const child = {
+    state: "OPEN",
+    number: 3,
+    title: "@team | deliver",
+    url: "https://example.org/issues/3",
+    repository: { id: "repo" },
+    issueDependenciesSummary: { blockedBy: 2 },
+  };
+  parent.subIssues = {
+    pageInfo: { hasNextPage: true },
+    nodes: [
+      child,
+      null,
+      { ...child, state: "CLOSED", title: "already done" },
+      {
+        ...child,
+        repository: { id: "other" },
+        title: "foreign record",
+        url: "https://example.org/foreign/3",
+      },
+    ],
+  };
+  const plan = renderReport([input], { plan: true });
+  assert.match(plan, /Child \[#3 &#64;team &#124; deliver\].*Open blockers: 2/);
+  assert.match(plan, /Inspect all child relationships/);
+  assert.doesNotMatch(plan, /Implementation queue|already done|foreign/);
+  parent.subIssues.pageInfo.hasNextPage = false;
+  assert.match(
+    renderReport([input], { plan: true }),
+    /Inspect all child relationships/,
+  );
+  parent.subIssues = { pageInfo: { hasNextPage: false }, nodes: [child] };
+  parent.subIssuesSummary = { total: 1, completed: 0 };
+  assert.doesNotMatch(
+    renderReport([input], { plan: true }),
+    /Inspect all child relationships/,
+  );
+});

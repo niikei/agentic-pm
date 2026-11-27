@@ -79,6 +79,23 @@ query MilestoneReport(
             completed
             total
           }
+          subIssues(first: 10) @include(if: $plan) {
+            pageInfo {
+              hasNextPage
+            }
+            nodes {
+              state
+              number
+              title
+              url
+              repository {
+                id
+              }
+              issueDependenciesSummary {
+                blockedBy
+              }
+            }
+          }
           projectItems(first: 100, includeArchived: false) {
             pageInfo {
               hasNextPage

@@ -91,4 +91,6 @@ The plan reads open milestone issues. Within each section it uses the Project's 
 
 The queue recognizes the board's **Todo** and **In Progress** statuses. Review custom statuses, missing memberships and missing or complex acceptance criteria on the issue. The plan shows links to open PRs and blockers in the selected public repository. Follow the issue for additional relationships. Operators confirm decisions and permissions before acting.
 
+For parent coordination, the plan reads the first ten child relationships in GitHub's order. Open children in the same repository are linked with their recorded blocker counts, including children assigned to another milestone or to none. Follow a child to confirm its outcome and scope before picking it up. Follow the parent for the complete list.
+
 Change a priority or dependency on GitHub and rerun the command to replan. The [roadmap milestone](https://github.com/niikei/agentic-pm/milestone/3) and its [worked example](https://github.com/niikei/agentic-pm/issues/24) use the same records.
