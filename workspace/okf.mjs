@@ -4,15 +4,12 @@ import { stages } from "../reports/desk/model.mjs";
 import { markdownText } from "../reports/writers/markdown.mjs";
 import { sourceUrl } from "../reports/writers/shared.mjs";
 import { labels, meetingTime } from "./fields.mjs";
-import { history, items } from "./store.mjs";
+import { fieldSources, history, items } from "./store.mjs";
 
 const status = { ...stages, done: "完了" };
 
 function concept(item, events) {
-  const sourceOf = new Map();
-  for (const event of events) {
-    for (const key of Object.keys(event.changes)) sourceOf.set(key, event);
-  }
+  const sourceOf = fieldSources(events);
   const used = new Set(
     Object.keys({ title: "", ...labels })
       .filter((key) => item[key])

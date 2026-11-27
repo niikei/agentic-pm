@@ -33,7 +33,7 @@ node workspace/cli.mjs $desk apply workspace/examples/meeting.json
 node workspace/cli.mjs $desk history pilot reader-test
 ```
 
-The [synthetic meeting update](../workspace/examples/meeting.json) is ready to replay after registering `pilot`. Each update has a stable event ID, project and item IDs, the revision read (`base`), an observation date, a source locator, and the changed fields. The first revision supplies a title and status. Omitted fields keep their values. Use `null` to clear an optional field. Replaying the same event is safe. The full batch rolls back on a revision conflict. Read the history before reconciling an earlier observation with a later decision.
+The [synthetic meeting update](../workspace/examples/meeting.json) is ready to replay after registering `pilot`. Each update has a stable event ID, project and item IDs, the revision read (`base`), an observation date, a source locator, and the changed fields. The first revision supplies a title and status. Omitted fields keep their values. Use `null` to clear an optional field. Replaying the same event is safe. The full batch rolls back on a revision conflict. Read the history before reconciling an earlier observation with a later decision. Use the date of the evidence. Older material can fill an independent field. Intake holds a batch that would replace a field supported by a later observation, including a decision to clear that field. Capture the disagreement as a question if it still needs a decision. Same-day conflicts require reading the underlying sources.
 
 A source path can match several projects. Use other explicit evidence to resolve it or capture the open question under the built-in `inbox` project. Keep an estimate with its assumptions, a confirmed deadline in `dueDate`, and the next check-in in `followUp`. Use `hypothesis` for an inference about a stakeholder and `question` for what would confirm it. Put only intentionally reader-ready wording in `managerUpdate`. Apply a correction to source systems such as GitHub only within the separate authority for that project.
 
@@ -60,6 +60,8 @@ At the next check-in, `review` compares only cited files and names the items aff
 An existing OKF concept also works as a selected Markdown source. Read its body and relevant provenance, then preserve its original properties. Obsidian's [Properties documentation](https://obsidian.md/help/properties) describes Source mode for nested metadata such as the OKF source list.
 
 ## Start the day or prepare a meeting
+
+If the view cannot be written after intake, the CLI returns status 2 and lists the saved revisions. Reopen the record or resolve the output problem and run `desk` to refresh it.
 
 Applying a batch refreshes the portfolio's `desk.html` in the private workspace. Open this file on the laptop. The first card links to the task and its dated evidence. The deadline chart counts confirmed deadlines. A separate list shows follow-ups, including requests for clarification. Refresh the desk at the start of a new day to advance the Tokyo date. Each project can also have its own desk.
 

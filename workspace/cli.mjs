@@ -77,8 +77,20 @@ function run() {
             db,
             JSON.parse(readFileSync(args[0], "utf8").replace(/^\uFEFF/, "")),
           );
-          const desk = publishView(db, directory, "desk");
-          return { updates, desk };
+          try {
+            const desk = publishView(db, directory, "desk");
+            return { updates, desk };
+          } catch (error) {
+            process.exitCode = 2;
+            console.error(
+              "Intake saved. Resolve the output problem and run desk to refresh the view.",
+            );
+            return {
+              updates,
+              desk: null,
+              refreshError: error.code ?? "unavailable",
+            };
+          }
         }
         break;
       case "items":
@@ -142,6 +154,8 @@ try {
     typeof result === "string" ? result : JSON.stringify(result, null, 2),
   );
 } catch (error) {
-  console.error(error.message);
+  console.error(
+    error instanceof SyntaxError ? "Invalid JSON input." : error.message,
+  );
   process.exitCode = 1;
 }
