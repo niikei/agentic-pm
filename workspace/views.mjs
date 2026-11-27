@@ -91,28 +91,31 @@ export function agenda(desk, all = false) {
       "ほかに着手できる作業",
       desk.actionable.slice(1).map((t) => describe(t, t.nextAction)),
     );
+  const datedReminders = [];
+  const undatedIntake = [];
+  for (const task of desk.tasks) {
+    const [date] = [task.followUp, task.dueDate]
+      .filter((value) => value && value <= desk.today)
+      .sort();
+    if (date) datedReminders.push({ task, date });
+    else if (task.unassignedProject) undatedIntake.push(task);
+  }
+  datedReminders.sort((a, b) => a.date.localeCompare(b.date));
   section(
     "忘れそうな確認",
-    desk.tasks
-      .filter(
-        (t) =>
-          (t.followUp && t.followUp <= desk.today) ||
-          (t.offset !== null && t.offset <= 0) ||
-          t.unassignedProject,
-      )
-      .map((t) =>
-        describe(
-          t,
-          [
-            t.followUp && `確認日 ${t.followUp}`,
-            t.dueDate && `期限 ${t.dueDate}`,
-            t.unassignedProject && "案件未整理",
-            t.question,
-          ]
-            .filter(Boolean)
-            .join(" ／ "),
-        ),
+    [...datedReminders.map(({ task }) => task), ...undatedIntake].map((t) =>
+      describe(
+        t,
+        [
+          t.followUp && `確認日 ${t.followUp}`,
+          t.dueDate && `期限 ${t.dueDate}`,
+          t.unassignedProject && "案件未整理",
+          t.question,
+        ]
+          .filter(Boolean)
+          .join(" ／ "),
       ),
+    ),
     "確認日や確定期限を迎えた作業、案件未整理の作業はありません。",
   );
   section(
