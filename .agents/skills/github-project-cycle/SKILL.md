@@ -33,7 +33,13 @@ gh project list --owner OWNER --format json --jq '.projects[] | select(.public) 
 gh api --paginate 'repos/{owner}/{repo}/milestones?state=open' --jq '.[] | [.number,.title] | @tsv'
 ```
 
-With Node.js 26 and an authenticated GitHub CLI that can read the public Project, supply those three inputs to the bundled reporter. It reads GitHub and prints Markdown.
+For work without a milestone, start in the selected Project. Replace the placeholders in the native filter and follow an issue to verify its assignees, recorded status and prerequisites. Preserve team decisions such as Later or Backlog until the team revises them.
+
+```sh
+gh project item-list PROJECT_NUMBER --owner OWNER --limit 100 --query 'repo:OWNER/REPO is:issue is:open no:milestone'
+```
+
+For milestone work, with Node.js 26 and an authenticated GitHub CLI that can read the public Project, supply the repository and both numbers to the bundled reporter. It reads GitHub and prints Markdown.
 
 ```sh
 node .agents/skills/github-project-cycle/scripts/milestone-report.mjs OWNER/REPO PROJECT_NUMBER MILESTONE_NUMBER --plan

@@ -391,3 +391,63 @@ test("routes explicit decisions and preserves ownership, review and blocking evi
     /Issue assignees|Human decisions|review requests/,
   );
 });
+
+test("replays Vite's required review alongside a failing aggregate check", () => {
+  // Reduced public observation on 2026-11-27. The issue and PR may change after capture.
+  const input = planningPage([19095]);
+  const [issue] = input.data.repository.milestone.issues.nodes;
+  issue.url = "https://github.com/vitejs/vite/issues/19095";
+  const head = "63175b633fc7eea6f23301326bbb3d5c8504f643";
+  const url = "https://github.com/vitejs/vite/pull/24069";
+  issue.closedByPullRequestsReferences.nodes.push({
+    number: 24069,
+    url,
+    repository: { id: "repo" },
+    state: "OPEN",
+    isDraft: false,
+    headRefOid: head,
+    commits: {
+      nodes: [
+        { commit: { oid: head, statusCheckRollup: { state: "FAILURE" } } },
+      ],
+    },
+    reviewDecision: "REVIEW_REQUIRED",
+    reviewRequests: { totalCount: 0 },
+  });
+  const plan = renderReport([input], { plan: true });
+  assert.ok(plan.includes(`gh pr checks ${url} --required`));
+  assert.match(plan, /Confirm who will provide the required review/);
+  assert.match(
+    plan,
+    /checks: failure, review: review required, outstanding review requests: 0/,
+  );
+  issue.closedByPullRequestsReferences.nodes[0].reviewRequests.totalCount = 1;
+  assert.doesNotMatch(
+    renderReport([input], { plan: true }),
+    /Confirm who will provide the required review/,
+  );
+});
+
+test("replays milestone membership and closure for Vite 5.0 issue 14404", () => {
+  // Only scope and state are reconstructed from the two GitHub timeline events.
+  const input = planningPage([]);
+  const milestone = input.data.repository.milestone;
+  milestone.url = "https://github.com/vitejs/vite/milestone/13";
+  const plan = () => renderReport([input], { plan: true });
+  const issue = page([14404]).data.repository.milestone.issues.nodes[0];
+  issue.url = "https://github.com/vitejs/vite/issues/14404";
+  issue.body = "";
+  assert.match(plan(), /No open milestone issues/);
+
+  // Milestoned on 2023-10-19 (event 10708595874).
+  milestone.issues.nodes.push(issue);
+  milestone.issues.totalCount = 1;
+  assert.ok(plan().includes(issue.url));
+  assert.match(renderReport([input]), /\*\*Open\*\* 1 · \*\*Closed\*\* 0/);
+
+  // Closed on 2023-10-23 (event 10743060378).
+  issue.state = "CLOSED";
+  assert.match(plan(), /No open milestone issues/);
+  assert.doesNotMatch(plan(), /14404/);
+  assert.match(renderReport([input]), /\*\*Open\*\* 0 · \*\*Closed\*\* 1/);
+});

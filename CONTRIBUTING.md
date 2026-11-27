@@ -32,6 +32,12 @@ JavaScript dependencies in `package.json` and refresh `pnpm-lock.yaml` with
 `mise exec -- pnpm install`. When upgrading pnpm, update both version pins.
 Review lockfile changes and run the frozen install and checks before submitting.
 
+## Test against public roadmaps
+
+With an authenticated GitHub CLI that can read public Projects, run `mise exec -- pnpm test:public` on demand. It exercises the normal reporter and compares its issue links, states, totals and daily queue with GitHub's paginated REST issue list. It excludes pull requests from that list. The examples cover [Vite 8.5](https://github.com/vitejs/vite/milestone/36), [Biome v2.7](https://github.com/biomejs/biome/milestone/16) and the completed [Vite 5.0 milestone](https://github.com/vitejs/vite/milestone/13). GitHub data can change between the reads. If a comparison differs, check the live records and repeat it.
+
+The regular offline tests replay two reduced cases. One follows a [Vite issue](https://github.com/vitejs/vite/issues/14404) into its milestone and through closure. The other captures a [PR](https://github.com/vitejs/vite/pull/24069) whose check aggregate failed while review was required and no review requests were outstanding. Dates, issue numbers and the observed PR head identify the captures. The historical issue replay covers membership and state only.
+
 ## TypeScript
 
 When a feature needs TypeScript, use mise's Node.js 26 and pnpm, set
