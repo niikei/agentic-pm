@@ -47,7 +47,9 @@ To roll back a committed update, run `git revert UPDATE_COMMIT` on a branch, res
 
 > Read .agents/skills/github-project-cycle/SKILL.md. Resume from the parent issue and its Project. Draft a breakdown for the approved outcome, apply the authorized changes, and link the checks and milestone snapshot in the handoff.
 
-In a fresh Git repository containing only the installed skill, Codex's native skill list found `github-project-cycle` enabled at repository scope. The skill's commands recovered the live parent, child, board status and PR checks. This verifies discovery and explicit use. Automatic selection from a natural-language request remains untested. [Portability trial](https://github.com/niikei/agentic-pm/issues/20) · [Original issue-to-PR cycle](https://github.com/niikei/agentic-pm/issues/5#issuecomment-7205444551)
+In a fresh Git repository containing only the installed skill, Codex's native skill list found `github-project-cycle` enabled at repository scope. The skill's commands recovered the live parent, child, board status and PR checks. [Portability trial](https://github.com/niikei/agentic-pm/issues/20) · [Original issue-to-PR cycle](https://github.com/niikei/agentic-pm/issues/5#issuecomment-7205444551)
+
+In a read-only trial with two local GitHub captures, Codex CLI selected and read the installed skill for a handoff request that omitted its name. It correctly recovered the issue state and milestone at the requested cutoff. A separate creation-date lookup returned the correct timestamp without reading the skill. See the tested CLI build, prompts and scope in the [implicit selection trial](https://github.com/niikei/agentic-pm/issues/68#issuecomment-7213980816).
 
 ## GitHub Copilot
 
