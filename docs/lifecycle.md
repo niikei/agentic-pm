@@ -93,3 +93,17 @@ and marks drafts. The report reads up to ten linked PRs per issue. Follow
 Review the output before sharing it. Include a dated snapshot when the reader
 needs to reconstruct a decision, and link the verified PR, check run, blocker
 and next action. [Published example](https://github.com/niikei/agentic-pm/issues/5#issuecomment-7199354981)
+
+### Generate an executable work plan
+
+Add a single-select **Priority** field to the Project. Order its options from highest to lowest. This Project uses High, Normal and Low. Put each deliverable's verifiable criteria under an **Acceptance criteria** heading on its issue, and use **Blocked by** for prerequisites.
+
+```sh
+mise exec -- node scripts/milestone-report.mjs niikei/agentic-pm 1 3 --plan
+```
+
+The plan reads open milestone issues. Within each section it uses the Project's option order, places unranked items last and breaks ties by issue number. The implementation queue gives a pickup or continuation step and quotes the issue's criteria. The other sections identify linked PRs, unresolved prerequisites, parent outcomes and issues that need triage. A parent whose children are complete still needs its outcome verified.
+
+The queue recognizes the board's **Todo** and **In Progress** statuses. Review custom statuses, missing memberships and missing or complex acceptance criteria on the issue. The plan shows links to open PRs and blockers in the selected public repository. Follow the issue for additional relationships. Operators confirm decisions and permissions before acting.
+
+Change a priority or dependency on GitHub and rerun the command to replan. The [roadmap milestone](https://github.com/niikei/agentic-pm/milestone/3) and its [worked example](https://github.com/niikei/agentic-pm/issues/24) use the same records.
