@@ -21,11 +21,23 @@ export function openPullRequests(issue, repositoryId) {
   );
 }
 
-export function pullRequestLinks(issue, openPRs) {
+export function headCheckState(pr) {
+  const commit = pr.commits?.nodes[0]?.commit;
+  return commit?.oid && commit.oid === pr.headRefOid
+    ? commit.statusCheckRollup?.state
+    : undefined;
+}
+
+export function pullRequestLinks(issue, openPRs, { evidence = false } = {}) {
   const { pageInfo } = issue.closedByPullRequestsReferences;
-  const links = openPRs.map(
-    (pr) => `[#${pr.number}](${pr.url})${pr.isDraft ? " (draft)" : ""}`,
-  );
+  const links = openPRs.map((pr) => {
+    const link = `[#${pr.number}](${pr.url})${pr.isDraft ? " (draft)" : ""}`;
+    if (!evidence) return link;
+    const checks = headCheckState(pr)?.toLowerCase() ?? "unreported";
+    const review =
+      pr.reviewDecision?.toLowerCase().replaceAll("_", " ") ?? "unreported";
+    return `${link} (checks: ${checks}, review: ${review})`;
+  });
   if (pageInfo.hasNextPage) links.push(`[See issue](${issue.url})`);
   return links.join(", ") || "—";
 }
