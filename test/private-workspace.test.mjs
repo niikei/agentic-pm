@@ -12,12 +12,12 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { exportBundle } from "../workspace/okf.mjs";
+import { inspectSource, locate, reviewSources } from "../workspace/sources.mjs";
 import {
   applyEvents,
   history,
   init,
   items,
-  locate,
   openWorkspace,
   projects,
   register,
@@ -196,4 +196,64 @@ test("desk, agenda, and manager views respect evidence, audience and project sco
   ]);
   assert.equal(workDesk(db, "pilot", asOf).tasks.length, 0);
   assert.match(managerBrief(db, "pilot", asOf), /読み合わせが完了した/);
+});
+
+test("review only selected evidence, retain independent item revisions and reject stale intake", (t) => {
+  const { db, dir } = fixture(t);
+  const vault = join(dir, "vault");
+  mkdirSync(vault);
+  register(db, "pilot", "試行", [vault]);
+  register(db, "ops", "運用", [vault]);
+  register(db, "other", "別件", []);
+  const note = join(vault, "会議.md");
+  writeFileSync(note, "First meeting");
+  const one = inspectSource(db, note);
+  assert.deepEqual(one.candidates, ["ops", "pilot"]);
+  const a = { ...events[0], file: one.file };
+  const b = { ...events[0], project: "ops", event: "ops-cites" };
+  applyEvents(db, [a, { ...b, file: one.file }]);
+  assert.deepEqual(reviewSources(db), { checkedFiles: 1, attention: [] });
+  assert.throws(
+    () => applyEvents(db, [{ ...a, project: "other", event: "wrong-project" }]),
+    /registered roots/,
+  );
+  writeFileSync(note, "New meeting");
+  assert.equal(reviewSources(db).attention.length, 2);
+  assert.throws(
+    () => applyEvents(db, [{ ...a, event: "stale-input", base: 1 }]),
+    /changed since/,
+  );
+  assert.ok(applyEvents(db, [a])[0].replay);
+  const two = inspectSource(db, note);
+  const revised = {
+    ...a,
+    event: "new-minutes",
+    base: 1,
+    file: two.file,
+    changes: { title: "Revised task", question: "Date confirmed?" },
+  };
+  applyEvents(db, [revised]);
+  const staleFields = reviewSources(db, "pilot").attention[0].fields;
+  assert.ok(staleFields.includes("dueDate"));
+  assert.ok(!staleFields.includes("title"));
+  applyEvents(db, [
+    {
+      ...revised,
+      event: "reviewed-rest",
+      base: 2,
+      changes: { ...a.changes, title: "Revised task" },
+    },
+  ]);
+  assert.deepEqual(
+    reviewSources(db).attention.map((row) => [row.project, row.status]),
+    [["ops", "changed"]],
+  );
+  assert.equal(reviewSources(db, "pilot").attention.length, 0);
+  rmSync(note);
+  assert.equal(reviewSources(db, "pilot").attention[0].status, "missing");
+  assert.equal(history(db, "pilot", a.item).length, 3);
+  assert.doesNotMatch(
+    managerBrief(db, undefined, "2026-12-01T00:00:00Z"),
+    /会議\.md|sha256/,
+  );
 });

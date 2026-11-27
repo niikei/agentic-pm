@@ -1,16 +1,15 @@
 import { readFileSync } from "node:fs";
 import { exportBundle } from "./okf.mjs";
+import { inspectSource, locate, reviewSources } from "./sources.mjs";
 import {
   applyEvents,
   history,
   init,
   items,
-  locate,
   openWorkspace,
   projects,
   register,
 } from "./store.mjs";
-
 import { agenda, publishView, workDesk } from "./views.mjs";
 
 const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
@@ -18,6 +17,8 @@ const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
   register PROJECT NAME [ABSOLUTE_DIRECTORY ...]
   projects
   locate FILE
+  inspect ABSOLUTE_FILE
+  review [PROJECT]
   apply UPDATE_FILE
   items [PROJECT]
   history PROJECT ITEM
@@ -44,6 +45,12 @@ function run() {
         break;
       case "projects":
         if (!args.length) return projects(db);
+        break;
+      case "inspect":
+        if (args.length === 1) return inspectSource(db, args[0]);
+        break;
+      case "review":
+        if (args.length <= 1) return reviewSources(db, args[0]);
         break;
       case "locate":
         if (args.length === 1) return locate(db, args[0]);
