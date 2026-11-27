@@ -3,6 +3,7 @@ query MilestoneReport(
   $repo: String!
   $project: Int!
   $milestone: Int!
+  $plan: Boolean! = false
   $endCursor: String
 ) {
   repository(owner: $owner, name: $repo) {
@@ -13,6 +14,14 @@ query MilestoneReport(
         projectV2(number: $project) {
           id
           public
+          priority: field(name: "Priority") @include(if: $plan) {
+            ... on ProjectV2SingleSelectField {
+              options {
+                id
+                name
+              }
+            }
+          }
           url
         }
       }
@@ -35,6 +44,17 @@ query MilestoneReport(
           url
           state
           stateReason
+          body @include(if: $plan)
+          blockedBy(first: 10) @include(if: $plan) {
+            nodes {
+              number
+              url
+              state
+              repository {
+                id
+              }
+            }
+          }
           closedByPullRequestsReferences(first: 10, includeClosedPrs: false) {
             pageInfo {
               hasNextPage
@@ -63,6 +83,11 @@ query MilestoneReport(
             nodes {
               project {
                 id
+              }
+              priority: fieldValueByName(name: "Priority") @include(if: $plan) {
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  optionId
+                }
               }
               fieldValueByName(name: "Status") {
                 ... on ProjectV2ItemFieldSingleSelectValue {

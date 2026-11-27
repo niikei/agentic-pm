@@ -23,3 +23,5 @@ mise exec -- pnpm check
 ```
 
 See the [contributor guide](CONTRIBUTING.md) for tool decisions, commands, and the public review workflow.
+
+To choose the next roadmap issue, [generate a prioritized work plan](docs/lifecycle.md#generate-an-executable-work-plan) from the milestone and Project.
