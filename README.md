@@ -8,6 +8,8 @@ Start with the [development board](https://github.com/users/niikei/projects/1). 
 
 To try it, follow the [browser walkthrough](docs/lifecycle.md) or give your agent the [project-cycle skill](.agents/skills/github-project-cycle/SKILL.md). Codex is the first implementation exercised against the live Project. GitHub Copilot and Claude Code are optional integration targets. See the [agent profiles and validation evidence](docs/agent-profiles.md) and the [roadmap](docs/research/planning-and-reporting.md#prioritized-roadmap).
 
+To use the skill in another repository, follow the [project-scoped installation](docs/agent-profiles.md#install-in-another-repository).
+
 ## Getting started
 
 Install [mise](https://mise.jdx.dev/getting-started.html) and clone this repository.
