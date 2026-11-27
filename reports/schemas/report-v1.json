@@ -47,7 +47,7 @@
       "minItems": 1,
       "uniqueItems": true,
       "items": {
-        "enum": ["decisions", "changes", "work", "deliveries"]
+        "enum": ["decisions", "changes", "work", "deliveries", "outcomes"]
       }
     }
   },

@@ -42,6 +42,17 @@ export function renderMarkdown(model) {
     "",
   ];
   for (const section of model.sections) {
+    if (section.entries) {
+      lines.push(`## ${text(section.title)}`, "");
+      if (!section.entries.length) lines.push(text(section.empty), "");
+      for (const { title, fields } of section.entries) {
+        lines.push(`### ${text(title)}`, "");
+        for (const [label, value] of fields) {
+          lines.push(`**${text(label)}** · ${text(value)}`, "");
+        }
+      }
+      continue;
+    }
     lines.push(
       `## ${text(section.title)} (${section.count ?? copy.unknown})`,
       "",

@@ -72,6 +72,16 @@ export function validateSnapshot(snapshot) {
   if (Date.parse(snapshot.coverageStart) > Date.parse(snapshot.asOf)) {
     throw new Error("Snapshot coverage starts after its capture.");
   }
+  const goals = new Set();
+  for (const observation of snapshot.outcomes ?? []) {
+    if (Date.parse(observation.observedAt) > Date.parse(snapshot.asOf)) {
+      throw new Error("A goal observation is dated after the snapshot cutoff.");
+    }
+    const goal = observation.goal.trim();
+    if (goals.has(goal))
+      throw new Error("Duplicate goal in outcome observations.");
+    goals.add(goal);
+  }
   for (const records of [snapshot.items, snapshot.deliveries]) {
     if (new Set(records.map(({ id }) => id)).size !== records.length) {
       throw new Error(

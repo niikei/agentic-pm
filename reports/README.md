@@ -2,12 +2,13 @@
 
 Choose an edition, open the local gallery, or copy a definition to make a team-owned version. The examples run offline from a synthetic project snapshot. Source titles stay in their original language. The sample links to the [synthetic field notes](examples/field-notes.md).
 
-| Edition                                                        | Reader and purpose                                                         | Output            |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------- |
-| [Developer triage](definitions/developer-triage-ja.json)       | Developers checking open changes, decision flags and other work            | Japanese HTML     |
-| [Delivery review](definitions/delivery-review-en.json)         | Delivery teams inspecting the last week's merged changes and open requests | English HTML      |
-| [Weekly decision brief](definitions/manager-decisions-en.json) | Decision makers following flagged issues and recently merged work          | English Markdown  |
-| [Weekly handoff](definitions/weekly-handoff-ja.json)           | The incoming operator checking recent deliveries and remaining work        | Japanese Markdown |
+| Edition                                                           | Reader and purpose                                                                    | Output            |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------- |
+| [Developer triage](definitions/developer-triage-ja.json)          | Developers checking open changes, decision flags and other work                       | Japanese HTML     |
+| [Delivery review](definitions/delivery-review-en.json)            | Delivery teams inspecting the last week's merged changes and open requests            | English HTML      |
+| [Weekly decision brief](definitions/manager-decisions-en.json)    | Decision makers following flagged issues and recently merged work                     | English Markdown  |
+| [Weekly handoff](definitions/weekly-handoff-ja.json)              | The incoming operator checking recent deliveries and remaining work                   | Japanese Markdown |
+| [Results and goal progress](definitions/manager-outcomes-ja.json) | A manager checking what changed for the business and how far each goal has progressed | Japanese HTML     |
 
 ## Browse and generate
 
@@ -36,6 +37,18 @@ mise exec -- pnpm --silent reports render weekly-handoff-ja --input snapshot.jso
 
 For a single live read use `reports render developer-triage-ja --github OWNER/REPO`. The report is a dated snapshot. Re-run the command for a fresh observation. Generated files stay local until the user chooses a destination.
 
+## Prepare a manager's outcomes brief
+
+The recipient can open the standalone HTML file offline or print it. Each goal includes a confirmed result, progress toward its target and a dated source in plain language. The synthetic example distinguishes two sites using a new intake procedure from the effect on waiting time, which has yet to be measured.
+
+```sh
+mise exec -- pnpm --silent reports render manager-outcomes-ja > example-brief.html
+```
+
+For a real brief, add an `outcomes` array to a saved snapshot and render with `--input snapshot.json`. Use a recognizable project name. Write one observation per goal, in the reader's language, and put the most important goal first. Take `result` from a dated acceptance or operations record. For `progress`, give a comparable earlier value, current value and target when available, or describe the verified stage and what remains. Supply a shareable source locator (for example, meeting date and agenda item, or workbook tab and row) and its UTC observation time. See the [sample input](examples/rollout.json) and [source records](examples/field-notes.md#rollout-results).
+
+Omit either claim when the evidence is missing. The brief marks it as unconfirmed. A plain GitHub capture supplies no goal observations. The renderer does not estimate business progress from closed issues or merged changes. Review the standalone file before sharing it.
+
 ## Make a variant
 
 Copy any definition, keep it in your own repository and edit it directly. The record is data and can be reviewed in Git. Its filename is the catalog ID when placed in `reports/definitions/`. The CLI also accepts a path outside the catalog, including a path with spaces.
@@ -54,7 +67,7 @@ For example, change `reader` to your steering group, write a new `question` and 
 | `schemaVersion`               | Selects the v1 definition contract. Use Git revisions to track editions of an individual report.                                                                  |
 | `title`, `reader`, `question` | Declare the audience and the question the document should answer, in the intended language. Reader is a free-text description.                                    |
 | `language`, `format`          | Select English or Japanese interface labels and HTML or Markdown output. Translate the author-provided title, question and reader when making a language edition. |
-| `sections`                    | Ordered, unique selection of decisions, changes, work and deliveries. The decisions queue is a subset of open work.                                               |
+| `sections`                    | Ordered, unique selection of outcomes, decisions, changes, work and deliveries. The decisions queue is a subset of open work.                                     |
 | `periodDays`                  | Delivery lookback in 24-hour periods, from 1 to 90 (default 7). Open items show their state at capture.                                                           |
 
 An editor can validate a definition against [report-v1.json](schemas/report-v1.json). The existing offline check validates and renders every bundled definition, including new files. These structured editions complement the [free-form project-materials skill](../docs/project-materials.md), which also supports writing from arbitrary records, custom templates and scoped edits to existing artifacts.
