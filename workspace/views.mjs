@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { renderDesk } from "../reports/desk/html.mjs";
 import { buildDesk } from "../reports/desk/model.mjs";
 import { markdownText as md } from "../reports/writers/markdown.mjs";
-import { labels } from "./fields.mjs";
+import { labels, meetingTime } from "./fields.mjs";
 import { history, items, projects, transaction } from "./store.mjs";
 
 export function workDesk(db, project, asOf) {
@@ -31,6 +31,8 @@ export function workDesk(db, project, asOf) {
       nextAction: record.nextAction,
       question: record.question,
       needsDecision: Boolean(record.question),
+      meeting: record.meeting,
+      meetingLabel: record.meeting && meetingTime(record.meeting),
       estimate: record.estimate,
       followUp: record.followUp,
       hypothesis: record.hypothesis,
@@ -46,6 +48,13 @@ export function workDesk(db, project, asOf) {
   desk.followUps = desk.tasks
     .filter((task) => task.followUp)
     .sort((a, b) => a.followUp.localeCompare(b.followUp));
+  desk.meetings = desk.tasks
+    .filter(
+      (task) =>
+        task.meeting &&
+        Date.parse(task.meeting.end ?? task.meeting.start) >= Date.parse(asOf),
+    )
+    .sort((a, b) => Date.parse(a.meeting.start) - Date.parse(b.meeting.start));
   return desk;
 }
 
@@ -93,6 +102,11 @@ export function agenda(desk) {
     "時間の見積もり",
     desk.tasks.filter((t) => t.estimate).map((t) => describe(t, t.estimate)),
     "作業時間の見積もりは未記録です。",
+  );
+  section(
+    "会議の予定",
+    desk.meetings.map((task) => describe(task, task.meetingLabel)),
+    "今後の会議時刻は未記録です。",
   );
   section(
     "会議で確認すること",

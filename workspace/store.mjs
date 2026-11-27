@@ -14,7 +14,14 @@ import { inspectSource } from "./sources.mjs";
 
 const text = { type: "string", minLength: 1, pattern: "\\S" };
 const id = { type: "string", pattern: "^[a-z][a-z0-9-]{0,47}$" };
+const instant = { type: "string", format: "instant" };
 const fields = {
+  meeting: {
+    type: "object",
+    required: ["start"],
+    additionalProperties: false,
+    properties: { start: instant, end: instant },
+  },
   title: text,
   status: { enum: ["backlog", "ready", "active", "waiting", "done"] },
   nextAction: text,
@@ -30,7 +37,17 @@ const validDate = (value) => {
   const date = new Date(value);
   return Number.isFinite(+date) && date.toISOString().startsWith(value);
 };
-const ajv = new Ajv({ formats: { date: validDate } });
+const ajv = new Ajv({
+  formats: {
+    date: validDate,
+    instant: (value) =>
+      /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(
+        value,
+      ) &&
+      validDate(value.slice(0, 10)) &&
+      Number.isFinite(Date.parse(value)),
+  },
+});
 const validateId = ajv.compile(id);
 const validateEvent = ajv.compile({
   type: "object",
@@ -128,7 +145,11 @@ export function transaction(db, fn) {
 }
 
 export function register(db, project, name, paths) {
-  if (!validateId(project) || project === "inbox" || !name?.trim())
+  if (
+    !validateId(project) ||
+    (project === "inbox" && name !== "未整理") ||
+    !name?.trim()
+  )
     throw new Error("Supply a project ID and a display name.");
   const roots = paths.map((path) => {
     if (!isAbsolute(path) || !statSync(path).isDirectory())
@@ -164,6 +185,9 @@ export function applyEvents(db, events) {
     events.map((event) => {
       if (!validateEvent(event))
         throw new Error(ajv.errorsText(validateEvent.errors));
+      const meeting = event.changes.meeting;
+      if (meeting?.end && Date.parse(meeting.end) <= Date.parse(meeting.start))
+        throw new Error("Meeting end must follow its start.");
       const prior = db
         .prepare("SELECT payload,revision FROM events WHERE id=?")
         .get(event.event);

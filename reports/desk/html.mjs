@@ -74,6 +74,7 @@ ${rows.length > 3 ? `<details><summary>残り${rows.length - 3}件を表示</sum
 
 function privateNotes(task) {
   const facts = [
+    ["会議の時間", task.meetingLabel],
     ["次回確認日", task.followUp],
     ["見積もりと前提", task.estimate],
     ["関係者についての仮説", task.hypothesis],
@@ -87,9 +88,9 @@ function privateNotes(task) {
   );
 }
 
-function followUps(desk) {
-  if (!desk.followUps?.length) return "";
-  return `<section class="panel"><div class="section-head"><h2>次回の確認</h2></div><ul class="follow-ups">${desk.followUps.map((task) => `<li><time datetime="${h(task.followUp)}">${h(task.followUp)}</time> <a href="${h(task.url)}">${h(task.title)}</a></li>`).join("")}</ul></section>`;
+function dateList(title, tasks, date, label) {
+  if (!tasks?.length) return "";
+  return `<section class="panel"><div class="section-head"><h2>${title}</h2></div><ul class="follow-ups">${tasks.map((task) => `<li><time datetime="${h(date(task))}">${h(label(task))}</time> <a href="${h(task.url)}">${h(task.title)}</a></li>`).join("")}</ul></section>`;
 }
 
 function taskRow(task) {
@@ -183,6 +184,16 @@ ${styles}</style></head>
         : jump(count === null ? "undated" : filter, contents);
     })
     .join("")}</div>
-<div class="lower">${desk.recentChanges ? `<div class="desk-work">${register(desk)}${recentWork(desk)}</div>` : register(desk)}<div class="side">${followUps(desk)}${questions(desk)}${distribution(desk)}</div></div></main></div>
+<div class="lower">${desk.recentChanges ? `<div class="desk-work">${register(desk)}${recentWork(desk)}</div>` : register(desk)}<div class="side">${dateList(
+    "会議の予定",
+    desk.meetings,
+    (task) => task.meeting.start,
+    (task) => task.meetingLabel,
+  )}${dateList(
+    "次回の確認",
+    desk.followUps,
+    (task) => task.followUp,
+    (task) => task.followUp,
+  )}${questions(desk)}${distribution(desk)}</div></div></main></div>
 <template id="font-license"><pre>${h(license)}</pre></template><script>${script}</script></body></html>\n`;
 }

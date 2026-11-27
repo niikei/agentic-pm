@@ -1,4 +1,5 @@
 export const labels = {
+  meeting: "会議の時間",
   status: "作業状態",
   nextAction: "次の行動",
   question: "要確認",
@@ -8,3 +9,21 @@ export const labels = {
   hypothesis: "仮説",
   managerUpdate: "上司向けの記述",
 };
+
+const localTime = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+export function meetingTime(meeting) {
+  const start = new Date(meeting.start);
+  const range = meeting.end
+    ? localTime.formatRange(start, new Date(meeting.end))
+    : localTime.format(start);
+  return `${range} JST`;
+}

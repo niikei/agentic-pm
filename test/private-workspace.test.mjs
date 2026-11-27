@@ -325,3 +325,68 @@ test("hosted Windows routes a selected Unicode file on another drive", {
     db.close();
   }
 });
+
+test("a shared calendar supplies a zoned meeting without assigning a deadline or guessing the project", (t) => {
+  const { db, dir } = fixture(t);
+  const root = join(dir, "calendar");
+  mkdirSync(root);
+  const file = join(root, "appointment.txt");
+  writeFileSync(file, "10:30 to 11:00 JST on December 2");
+  register(db, "inbox", "未整理", [root]);
+  register(db, "pilot", "試行", []);
+  const receipt = inspectSource(db, file);
+  assert.equal(receipt.shared, true);
+  assert.deepEqual(receipt.candidates, []);
+  const meeting = {
+    start: "2026-12-02T01:30:00Z",
+    end: "2026-12-02T11:00:00+09:00",
+  };
+  const entry = {
+    ...events[1],
+    file: receipt.file,
+    changes: { ...events[1].changes, meeting },
+  };
+  applyEvents(db, [entry]);
+  const asOf = "2026-12-02T01:40:00Z";
+  const scene = workDesk(db, undefined, asOf);
+  assert.equal(scene.meetings.length, 1);
+  assert.equal(scene.meetings[0].offset, null);
+  assert.ok(scene.datesUnknown);
+  assert.match(agenda(scene), /10[:時]30.*11[:時]00.*JST/);
+  assert.equal(
+    workDesk(db, undefined, "2026-12-02T02:01:00Z").meetings.length,
+    0,
+  );
+  assert.throws(
+    () =>
+      applyEvents(db, [
+        {
+          ...entry,
+          event: "invalid-end",
+          base: 1,
+          changes: { meeting: { start: meeting.start, end: meeting.start } },
+        },
+      ]),
+    /follow/,
+  );
+  assert.throws(
+    () =>
+      applyEvents(db, [
+        {
+          ...entry,
+          event: "unknown-zone",
+          base: 1,
+          changes: { meeting: { start: "2026-12-02T10:30:00" } },
+        },
+      ]),
+    /instant/,
+  );
+  const assigned = { ...entry, project: "pilot", event: "assign-meeting" };
+  applyEvents(db, [
+    assigned,
+    { ...entry, event: "close-inbox", base: 1, changes: { status: "done" } },
+  ]);
+  assert.equal(workDesk(db, undefined, asOf).meetings.length, 1);
+  assert.deepEqual(reviewSources(db).attention, []);
+  assert.doesNotMatch(managerBrief(db, undefined, asOf), /10:30/);
+});

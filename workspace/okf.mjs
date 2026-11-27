@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { stages } from "../reports/desk/model.mjs";
 import { markdownText } from "../reports/writers/markdown.mjs";
-import { labels } from "./fields.mjs";
+import { labels, meetingTime } from "./fields.mjs";
 import { history, items } from "./store.mjs";
 
 const status = { ...stages, done: "完了" };
@@ -36,7 +36,7 @@ function concept(item, events) {
   for (const [key, label] of Object.entries(labels)) {
     if (!item[key]) continue;
     lines.push(
-      `- **${label}** · ${markdownText(key === "status" ? status[item.status] : item[key])}[^${sourceOf.get(key).event}]`,
+      `- **${label}** · ${markdownText(key === "status" ? status[item.status] : key === "meeting" ? meetingTime(item.meeting) : item[key])}[^${sourceOf.get(key).event}]`,
     );
   }
   lines.push("");
