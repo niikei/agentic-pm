@@ -5,6 +5,7 @@ import {
   cpSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -633,4 +634,28 @@ test("competing CLI sessions preserve one winning revision; output recovery can 
   );
   assert.equal(retry.updates[0].replay, true);
   assert.ok(readFileSync(retry.desk, "utf8").includes(events[0].changes.title));
+});
+
+test("a replaced destination receives no new project pages and a recognizable legacy bundle upgrades in place", (t) => {
+  const { dir, db } = fixture(t);
+  register(db, "pilot", "試行", []);
+  applyEvents(db, events);
+  const target = join(dir, "bound");
+  refreshBundle(db, target, "pilot");
+  const marker = join(target, ".agentic-pm-bundle");
+  assert.ok(readFileSync(marker, "utf8").length > 0);
+  // A pre-identity workspace records generated baselines without a marker.
+  db.exec("DROP TABLE vault_ids");
+  rmSync(marker);
+  assert.deepEqual(refreshBundle(db, target, "pilot").conflicts, []);
+  assert.ok(readFileSync(marker, "utf8").length > 0);
+  const page = readFileSync(join(target, "p-pilot_i-reader-test.md"), "utf8");
+  assert.match(page, /x-agentic-pm-work-status: "ready"/);
+  assert.match(page, /x-agentic-pm-due: "2026-12-02"/);
+  assert.doesNotMatch(page, /x-agentic-pm-follow-up/);
+  renameSync(target, join(dir, "original-bound"));
+  mkdirSync(target);
+  applyEvents(db, [{ ...events[0], event: "extra-item", item: "second" }]);
+  assert.throws(() => refreshBundle(db, target, "pilot"), /identity changed/);
+  assert.deepEqual(readdirSync(target), []);
 });

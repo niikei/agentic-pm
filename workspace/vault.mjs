@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   constants,
   copyFileSync,
@@ -103,6 +104,35 @@ export function bundles(db) {
     .all();
 }
 
+const marker = ".agentic-pm-bundle";
+
+function verifyDestination(target, token) {
+  const file = join(target, marker);
+  if (
+    !lstatSync(target).isDirectory() ||
+    !lstatSync(file, { throwIfNoEntry: false })?.isFile() ||
+    readFileSync(file, "utf8") !== token
+  )
+    throw new Error(
+      "The bound folder identity changed. Restore the original destination or bind a new folder.",
+    );
+}
+
+function recognizeLegacyPages(db, target) {
+  const known = db
+    .prepare(
+      "SELECT name,body FROM vault_pages WHERE path=? AND name!='index.md'",
+    )
+    .all(target);
+  return known.some(({ name, body }) => {
+    const file = join(target, name);
+    return (
+      lstatSync(file, { throwIfNoEntry: false })?.isFile() &&
+      readFileSync(file, "utf8").startsWith(body)
+    );
+  });
+}
+
 export function refreshBundle(db, directory, project) {
   if (!project)
     throw new Error("Choose a single project for the linked bundle.");
@@ -110,23 +140,37 @@ export function refreshBundle(db, directory, project) {
   const target = join(realpathSync(dirname(absolute)), basename(absolute));
   db.exec(`
     CREATE TABLE IF NOT EXISTS vaults(path TEXT PRIMARY KEY,project TEXT NOT NULL REFERENCES projects(id));
+    CREATE TABLE IF NOT EXISTS vault_ids(path TEXT PRIMARY KEY REFERENCES vaults(path),token TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS vault_pages(path TEXT NOT NULL REFERENCES vaults(path),name TEXT NOT NULL,body TEXT NOT NULL,PRIMARY KEY(path,name));
   `);
-  transaction(db, () => {
+  const token = transaction(db, () => {
     const binding = db
       .prepare("SELECT project FROM vaults WHERE path=?")
       .get(target);
     if (binding) {
       if (binding.project !== project || !lstatSync(target).isDirectory())
         throw new Error("The bound folder or its project changed.");
+      const saved = db
+        .prepare("SELECT token FROM vault_ids WHERE path=?")
+        .get(target);
+      if (saved) return saved.token;
+      if (!recognizeLegacyPages(db, target))
+        throw new Error(
+          "Original generated notes could not be identified in this older bundle. Choose a new dedicated folder.",
+        );
     } else {
       if (!db.prepare("SELECT 1 FROM projects WHERE id=?").get(project))
         throw new Error("Unknown project.");
       mkdirSync(target, { mode: 0o700 });
       db.prepare("INSERT INTO vaults VALUES (?,?)").run(target, project);
     }
+    const value = randomUUID();
+    writeFileSync(join(target, marker), value, { flag: "wx", mode: 0o600 });
+    db.prepare("INSERT INTO vault_ids VALUES (?,?)").run(target, value);
+    return value;
   });
   return transaction(db, () => {
+    verifyDestination(target, token);
     const written = [],
       conflicts = [];
     const baseline = db.prepare(

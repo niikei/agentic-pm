@@ -4,7 +4,13 @@ Keep each repository, shared folder and Obsidian vault where it already lives. A
 
 ## Set up on Windows
 
-Use the [repository setup](../README.md#getting-started) or install Node.js 26 and the locked pnpm dependencies in an approved checkout. From that checkout, with the pinned Node on PATH, run these commands in PowerShell. Choose an existing private parent directory and a **new** workspace folder outside Git. Keep the SQLite database on a local disk with account access controls. Registered sources may be on other drives or reachable network shares.
+Use the [repository setup](../README.md#getting-started) for development. For daily use, an approved source checkout or extracted source archive, Node.js 26 and the pinned pnpm version from `package.json` are enough. Install only the runtime dependencies from the source directory.
+
+```powershell
+pnpm install --prod --frozen-lockfile --ignore-scripts
+```
+
+Once the pinned packages are present in the local pnpm store, the same installation also works with `--offline`. From the installed source directory, with Node on PATH, run these commands in PowerShell. Choose an existing private parent directory and a **new** workspace folder outside Git. Keep the SQLite database on a local disk with account access controls. Registered sources may be on other drives or reachable network shares.
 
 ```powershell
 $desk = Join-Path $env:LOCALAPPDATA 'MyWorkDesk'
@@ -91,6 +97,10 @@ For a stable link from your existing daily notes, bind a **new, dedicated** subf
 ```powershell
 node workspace/cli.mjs $desk okf-refresh "C:\Notes\Work\Pilot desk" pilot
 ```
+
+The bound folder contains an opaque `.agentic-pm-bundle` marker. Preserve it when making a backup. A different folder at the old path stops the refresh before any new work pages are written. Older bound folders acquire a marker when a generated page still matches its saved text. Choose a fresh destination when the original folder cannot be identified.
+
+For a native note table, create an [Obsidian Base](https://obsidian.md/help/bases) and filter it to this dedicated folder and the `Work Item` type. Select `title`, `x-agentic-pm-work-status`, `x-agentic-pm-due` and `x-agentic-pm-follow-up` as columns. A missing date remains empty. The work-status property describes execution, while OKF's reserved lifecycle status describes the knowledge document. Change a work decision through intake so its evidence and the desk advance together.
 
 If you edit generated prose or its frontmatter and that record later changes, the command lists the conflict and returns status 2. A removed note also stays removed. Review a fresh `okf` snapshot alongside your edit. To accept its generated section, copy that section into the bound note, keep your own additions below it, and refresh again. Other records can still refresh. The index advances once its linked pages are ready. Finish edits to a generated note before refreshing it. If another writer interrupts a save, a `.save-…` folder can retain the original or proposed file for recovery.
 
