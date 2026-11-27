@@ -47,11 +47,19 @@ mise exec -- pnpm --silent reports desk --github niikei/agentic-pm > repo-desk.h
 mise exec -- pnpm --silent reports desk --input snapshot.json --owner LOGIN > my-desk.html
 ```
 
-Open the local file. With no owner filter the desk covers all open issues and change requests in the input. An exact owner match narrows the entire page. Select a headline number, deadline bar or workflow state to see its task list. Search and expand a task for its action, owner and source. The confirmation queue shows time since the recorded decision flag. Its bars are relative to the longest known wait.
+Open the local file. With no owner filter the desk covers all open issues and change requests in the input. An exact owner match narrows the entire page. Collapse the navigation with its chevron to give the work area more width. Select a deadline bar or workflow state to see matching tasks. The confirmation count jumps directly to the questions. Search and expand a task for its action, owner and source. The confirmation queue shows time since the recorded decision flag. Its bars are relative to the longest known wait.
 
 A saved item may carry a calendar `dueDate` (YYYY-MM-DD), `stage` (`ready`, `active` or `waiting`), `nextAction`, and a `question` for a flagged decision. Copy these from the planning record. The next-action panel selects the earliest dated ready or active task with an explicit action and no decision flag. Undated tasks follow dated ones, with ties ordered by ID. When no such task exists, it surfaces the longest known outstanding confirmation. The seven-day chart starts on the capture's Japan calendar date. Overdue, later and undated work have separate totals.
 
 A repository capture supplies open records, assignees and decision flags. Task deadlines and Project workflow state require a planning source. Missing fields stay visible. Re-render to refresh the local file.
+
+### Desk design decisions
+
+The first row pairs the next recorded action with the deadline calendar. Below it, the confirmation count opens the outstanding questions, where each row names the recorded task owner and links to evidence. The status chart uses four bars with a common baseline so a reader can compare similar counts and select the underlying work. The [UK Analysis Function chart guidance](https://analysisfunction.civilservice.gov.uk/policy-store/data-visualisation-charts/) discusses bars for small category differences. These choices come from a task walkthrough. Human gaze patterns and time savings have yet to be measured.
+
+The desk embeds the unmodified [Pretendard JP v1.3.9 variable font](https://github.com/orioncactus/pretendard/tree/5c41199ea0024a9e0b2cb31735265056e5472d76/packages/pretendard-jp/dist/web/variable/woff2) and its [SIL Open Font License](desk/fonts/LICENSE.txt) in each standalone document. This adds about 7.1 MB to the HTML and keeps Japanese, Latin and numeric text available offline. System fonts cover unsupported characters.
+
+The root text size follows the reader's browser settings and opts into OS scaling on supporting browsers, following [Chrome's text-scale guidance](https://github.com/GoogleChrome/modern-web-guidance/blob/2b4aa13a72dd47cd135b06ce5abfccd92e19b24f/skills/modern-web-guidance/guides/accessibility/respect-os-text-scale.md). The named, reversible rail control follows the interaction in [Meta Astryx's SideNav collapse specification](https://github.com/meta/astryx/blob/41ea1657c894c0d99391b2adbfcf66ffb005a14a/docs/specs/components/SideNav/SideNavCollapseButton.spec.md). A native button implements it in the standalone page.
 
 ## Prepare a manager's outcomes brief
 
