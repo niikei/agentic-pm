@@ -33,12 +33,12 @@ gh api --paginate 'repos/OWNER/REPO/issues/NUMBER/dependencies/blocked_by?per_pa
 
 ## Generate a daily plan
 
-From the adopting checkout, identify the repository and its open milestones. Replace `OWNER` with the repository owner to list their public Projects. Choose the Project and milestone for the work you intend to plan. A repository can have several milestones and an issue can be off the board.
+Take `OWNER/REPO` from the GitHub issue or repository URL for the authorized work. In a checkout with both fork and upstream remotes, the GitHub CLI default can point to either repository. Use the chosen slug in the repository and milestone queries, and its `OWNER` in the Project lookup. Confirm the repository is public and choose the Project and milestone to plan.
 
 ```sh
-gh repo view --json nameWithOwner --jq .nameWithOwner
+gh repo view OWNER/REPO --json nameWithOwner,visibility --jq '[.nameWithOwner,.visibility] | @tsv'
 gh project list --owner OWNER --format json --jq '.projects[] | select(.public) | [.number,.title] | @tsv'
-gh api --paginate 'repos/{owner}/{repo}/milestones?state=open' --jq '.[] | [.number,.title] | @tsv'
+gh api --paginate 'repos/OWNER/REPO/milestones?state=open' --jq '.[] | [.number,.title] | @tsv'
 ```
 
 For work without a milestone, start in the selected Project. Replace the placeholders in the native filter and follow an issue to verify its assignees, recorded status and prerequisites. Preserve team decisions such as Later or Backlog until the team revises them.
