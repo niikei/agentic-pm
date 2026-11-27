@@ -58,3 +58,31 @@ function markSection() {
 window.addEventListener("hashchange", markSection);
 markSection();
 register.querySelector(".toolbar").hidden = false;
+
+const navigation = document.querySelector("#desk-nav");
+const toggle = document.querySelector(".nav-toggle");
+const shell = document.querySelector(".shell");
+const preference = "agentic-pm.desk.compact";
+function showNavigation(expanded) {
+  navigation.hidden = !expanded;
+  shell.toggleAttribute("data-compact", !expanded);
+  toggle.setAttribute("aria-expanded", String(expanded));
+  const label = expanded ? "ナビを閉じる" : "ナビを開く";
+  toggle.setAttribute("aria-label", label);
+  toggle.title = label;
+  toggle.firstElementChild.textContent = expanded ? "‹" : "›";
+}
+toggle.hidden = false;
+try {
+  showNavigation(localStorage.getItem(preference) !== "yes");
+} catch {
+  showNavigation(true);
+}
+toggle.addEventListener("click", () => {
+  showNavigation(navigation.hidden);
+  try {
+    localStorage.setItem(preference, navigation.hidden ? "yes" : "no");
+  } catch {
+    // File viewers can disable storage; the current page still toggles.
+  }
+});
