@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { stages } from "../reports/desk/model.mjs";
 import { markdownText } from "../reports/writers/markdown.mjs";
+import { sourceUrl } from "../reports/writers/shared.mjs";
 import { labels, meetingTime } from "./fields.mjs";
 import { history, items } from "./store.mjs";
 
@@ -25,10 +26,10 @@ function concept(item, events) {
     `x-agentic-pm-revision: ${item.revision}`,
     "sources:",
   ];
-  for (const { event, source } of used) {
+  for (const { event, source, permalink } of used) {
     lines.push(
       `  - id: ${JSON.stringify(event)}`,
-      `    resource: "urn:agentic-pm:event:${event}"`,
+      `    resource: ${JSON.stringify(sourceUrl(permalink) ?? `urn:agentic-pm:event:${event}`)}`,
       `    title: ${JSON.stringify(source)}`,
     );
   }

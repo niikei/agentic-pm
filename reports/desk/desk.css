@@ -829,3 +829,9 @@
 .follow-ups time {
   font-variant-numeric: tabular-nums;
 }
+
+.source-path {
+  display: block;
+  overflow-wrap: anywhere;
+  user-select: all;
+}

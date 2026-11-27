@@ -10,6 +10,7 @@ import { dirname, isAbsolute, join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { isDeepStrictEqual } from "node:util";
 import Ajv from "ajv";
+import { sourceUrl } from "../reports/writers/shared.mjs";
 import { inspectSource } from "./sources.mjs";
 
 const text = { type: "string", minLength: 1, pattern: "\\S" };
@@ -40,6 +41,7 @@ const validDate = (value) => {
 const ajv = new Ajv({
   formats: {
     date: validDate,
+    permalink: (value) => Boolean(sourceUrl(value)),
     instant: (value) =>
       /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(
         value,
@@ -68,6 +70,7 @@ const validateEvent = ajv.compile({
     base: { type: "integer", minimum: 0 },
     observed: { type: "string", format: "date" },
     source: text,
+    permalink: { type: "string", format: "permalink" },
     file: {
       type: "object",
       required: ["path", "sha256"],

@@ -525,3 +525,41 @@ test("a portfolio check-in shows a bounded sample, explains ties and retains a c
     /期限が最も早い/,
   );
 });
+
+test("private evidence can open an explicit permalink while the manager draft stays self-contained", (t) => {
+  const { dir, db } = fixture(t);
+  register(db, "pilot", "試行", [dir]);
+  const file = join(dir, "private note.md");
+  writeFileSync(file, "Source detail");
+  const update = {
+    ...events[0],
+    file: inspectSource(db, file).file,
+    permalink: "https://github.com/example/pilot/issues/12#issuecomment-3",
+  };
+  for (const permalink of [
+    "local-note.md",
+    "file:///example",
+    "https://example:password@example.org/",
+  ]) {
+    assert.throws(
+      () => applyEvents(db, [{ ...update, permalink }]),
+      /permalink/,
+    );
+  }
+  applyEvents(db, [update]);
+  const desk = readFileSync(publishView(db, dir, "desk", "pilot"), "utf8");
+  assert.ok(desk.includes(`href="${update.permalink}"`));
+  assert.match(desk, /private note\.md/);
+  const folder = join(dir, "Bundle");
+  exportBundle(db, folder, "pilot");
+  const concept = readFileSync(
+    join(folder, "p-pilot_i-reader-test.md"),
+    "utf8",
+  );
+  assert.ok(concept.includes(`resource: "${update.permalink}"`));
+  assert.doesNotMatch(concept, /private note\.md/);
+  assert.doesNotMatch(
+    managerBrief(db, undefined, "2026-11-28T00:00:00Z"),
+    /https?:|private note\.md|issuecomment/,
+  );
+});
