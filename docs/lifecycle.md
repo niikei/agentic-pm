@@ -43,8 +43,8 @@ In the browser, use **Add sub-issue** on the parent for accepted work. Attach ea
    Change the dependency relationship only when the actual prerequisite changes.
    Keep independent work moving. [Example decision](https://github.com/niikei/agentic-pm/issues/5#issuecomment-7205444551)
 3. Verify the criteria before closing the issue. Check its Project status,
-   the parent's sub-issue count and the dependent issue's open blockers. A
-   maintainer handles merge and release decisions. [Contributor workflow](../CONTRIBUTING.md#public-review-workflow)
+   the parent's sub-issue count and the dependent issue's open blockers. Follow the
+   repository’s merge policy. The maintainer approves releases. [Contributor workflow](../CONTRIBUTING.md#public-review-workflow)
 
 ## Generate a progress report
 
