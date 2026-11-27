@@ -1,10 +1,10 @@
 # Agent profiles
 
-All profiles use the same [project-cycle skill](../.agents/skills/github-project-cycle/SKILL.md), GitHub issues, Project and approval boundaries. The skill is a Markdown file with standard name and description frontmatter. An operator can point an agent directly at the file. [Agent Skills specification](https://agentskills.io/specification)
+All profiles use the same [project-cycle skill](../.agents/skills/github-project-cycle/SKILL.md), GitHub issues, Project and approval boundaries. The skill includes Markdown instructions with standard frontmatter and a read-only milestone reporter. An operator can point an agent directly at the file. [Agent Skills specification](https://agentskills.io/specification)
 
 ## Install in another repository
 
-From the destination Git checkout, use GitHub CLI's project-scoped installer. Replace `REVIEWED_COMMIT` with the full commit SHA you intend to adopt. Preview the skill and review its source before installation. The hidden-directory flag includes this repository's `.agents/skills` directory in the search. [GitHub CLI installation reference](https://cli.github.com/manual/gh_skill_install)
+From the destination Git checkout, use GitHub CLI's project-scoped installer. Replace `REVIEWED_COMMIT` with the full commit SHA you intend to adopt. Preview the instructions and inspect all files in the skill directory at that commit, including the JavaScript and GraphQL query, before installation. The hidden-directory flag includes this repository's `.agents/skills` directory in the search. [GitHub CLI installation reference](https://cli.github.com/manual/gh_skill_install)
 
 ```sh
 gh skill preview niikei/agentic-pm github-project-cycle@REVIEWED_COMMIT --allow-hidden-dirs
@@ -12,7 +12,32 @@ gh skill install niikei/agentic-pm github-project-cycle --pin REVIEWED_COMMIT --
 gh skill list --agent codex --scope project --json skillName,version,pinned
 ```
 
-The installed skill includes read-only commands for a handoff using an issue, its Project and its PR. For a full milestone snapshot in the reference checkout, use the [milestone reporter](lifecycle.md#verify-a-milestone-snapshot).
+From the destination root, use Node.js 26 and an authenticated `gh` with read access to the public Project. Replace the example repository, Project number and milestone number with your own. The reporter has no package installation step.
+
+```sh
+node .agents/skills/github-project-cycle/scripts/milestone-report.mjs niikei/agentic-pm 1 6 --plan
+```
+
+Commit the installed directory so the team can review and reproduce the chosen version. Keep team-specific instructions in the destination's own `AGENTS.md`.
+
+## Update or roll back
+
+Start on an update branch with a clean working tree. Commit or save local edits first. In a consumer trial, reinstalling with `--force` overwrote a customized file but retained files absent from the selected revision. The CLI reported the requested pin even with the extra files present.
+
+Preview the new commit and review its skill sources. Move the installed copy into a temporary directory, then install into the empty destination. Keep the backup until the updated plan works. If installation fails, move the partial copy aside and restore the backup.
+
+```sh
+backup_dir=$(mktemp -d)
+mv .agents/skills/github-project-cycle "$backup_dir/"
+gh skill install niikei/agentic-pm github-project-cycle --pin REVIEWED_COMMIT --allow-hidden-dirs --agent codex --scope project
+gh skill list --agent codex --scope project --json skillName,version,pinned
+git add -A -- .agents/skills/github-project-cycle
+git diff --cached -- .agents/skills/github-project-cycle
+```
+
+Compare intentional customizations with the backup and reapply the ones you need. Review the final staged changes, including removals, rerun the plan and commit the skill update separately.
+
+To roll back a committed update, run `git revert UPDATE_COMMIT` on a branch, resolve any conflicts with later edits, and review the resulting pin and directory contents. This also removes files introduced by that update. Repeat the previous version's documented check. Versions that predate the bundled reporter support the individual issue and PR commands in their installed instructions.
 
 ## Codex
 
