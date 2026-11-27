@@ -25,7 +25,7 @@ for (const { repository, project, milestone } of cases) {
       "--paginate",
       `repos/${repository}/issues?milestone=${milestone}&state=all&per_page=100`,
       "--jq",
-      '.[] | select(has("pull_request") | not) | {url: .html_url, state, state_reason} | @json',
+      '.[] | select(has("pull_request") | not) | {url: .html_url, state, state_reason, blockers: .issue_dependencies_summary.blocked_by} | @json',
     ]);
     const issues = issueList
       .trim()
@@ -39,18 +39,18 @@ for (const { repository, project, milestone } of cases) {
 
     const rows = [
       ...snapshot.matchAll(
-        /^\| \[#[^\n]*?\]\(([^)]+)\) \| (open|closed \([^)]+\)) \|/gim,
+        /^\| \[#[^\n]*?\]\(([^)]+)\) \| (open|closed \([^)]+\)) \| [^\n]*? \| (\d+) \|/gim,
       ),
     ];
     assert.deepEqual(
-      rows.map((row) => `${row[1]} ${row[2].toLowerCase()}`).sort(),
+      rows.map((row) => `${row[1]} ${row[2].toLowerCase()} ${row[3]}`).sort(),
       issues
         .map((issue) => {
           const state =
             issue.state === "open"
               ? "open"
               : `closed (${issue.state_reason?.replaceAll("_", " ") ?? "reason unreported"})`;
-          return `${issue.url} ${state}`;
+          return `${issue.url} ${state} ${issue.blockers}`;
         })
         .sort(),
     );
@@ -69,5 +69,47 @@ for (const { repository, project, milestone } of cases) {
       open.map((issue) => issue.url).sort(),
     );
     assert.equal(plan.includes("No open milestone issues."), open.length === 0);
+  });
+}
+
+for (const issue of [
+  "vitejs/vite/issues/17700",
+  "microsoft/vscode/issues/274013",
+]) {
+  test(`${issue} preserves prerequisite records across GitHub read paths`, () => {
+    const connection = JSON.parse(
+      run("gh", [
+        "issue",
+        "view",
+        `https://github.com/${issue}`,
+        "--json",
+        "blockedBy",
+      ]),
+    ).blockedBy;
+    const records = run("gh", [
+      "api",
+      "--hostname",
+      "github.com",
+      "--paginate",
+      `repos/${issue}/dependencies/blocked_by?per_page=100`,
+      "--jq",
+      ".[] | [.html_url, .state] | @tsv",
+    ])
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+
+    assert.equal(records.length, connection.totalCount);
+    assert.equal(
+      connection.nodes.length,
+      connection.totalCount,
+      "Fixture exceeds the native issue view window",
+    );
+    assert.deepEqual(
+      records.sort(),
+      connection.nodes
+        .map((node) => `${node.url}\t${node.state.toLowerCase()}`)
+        .sort(),
+    );
   });
 }

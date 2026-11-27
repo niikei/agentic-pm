@@ -36,6 +36,8 @@ Review lockfile changes and run the frozen install and checks before submitting.
 
 With an authenticated GitHub CLI that can read public Projects, run `mise exec -- pnpm test:public` on demand. It exercises the normal reporter and compares its issue links, states, totals and daily queue with GitHub's paginated REST issue list. It excludes pull requests from that list. The examples cover [Vite 8.5](https://github.com/vitejs/vite/milestone/36), [Biome v2.7](https://github.com/biomejs/biome/milestone/16) and the completed [Vite 5.0 milestone](https://github.com/vitejs/vite/milestone/13). GitHub data can change between the reads. If a comparison differs, check the live records and repeat it.
 
+The live checks also compare open-blocker counts in the milestone tables with GitHub's REST issue summaries. Two small dependency lists exercise the [prerequisite lookup](.agents/skills/github-project-cycle/SKILL.md#resume-from-github). At capture, [Vite 17700](https://github.com/vitejs/vite/issues/17700) had one closed cross-repository prerequisite, while [VS Code 274013](https://github.com/microsoft/vscode/issues/274013) had both an open and a closed prerequisite. Compare live URLs and states when repeating the check.
+
 The regular offline tests replay two reduced cases. One follows a [Vite issue](https://github.com/vitejs/vite/issues/14404) into its milestone and through closure. The other captures a [PR](https://github.com/vitejs/vite/pull/24069) whose check aggregate failed while review was required and no review requests were outstanding. Dates, issue numbers and the observed PR head identify the captures. The historical issue replay covers membership and state only.
 
 ## TypeScript
