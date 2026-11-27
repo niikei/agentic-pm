@@ -16,10 +16,10 @@ Use Node.js 26 and an authenticated GitHub CLI with read access to the public Pr
 revision=a6ddb0e33af88d7b262477a67488ab0526b1344b
 gh skill preview niikei/agentic-pm "github-project-cycle@$revision" --allow-hidden-dirs
 gh skill install niikei/agentic-pm github-project-cycle --pin "$revision" --allow-hidden-dirs --agent codex --scope project
-node .agents/skills/github-project-cycle/scripts/milestone-report.mjs vitejs/vite 1 36 --plan
+mise exec node@26.13.1 -- node .agents/skills/github-project-cycle/scripts/milestone-report.mjs vitejs/vite 1 36 --plan
 ```
 
-The example reads Vite’s public Project and milestone. For your own roadmap, substitute its repository and numbers. For work without a milestone, start with the [Project query](.agents/skills/github-project-cycle/SKILL.md#generate-a-daily-plan). If the skill is already installed, follow the [update and rollback procedure](docs/agent-profiles.md#update-or-roll-back).
+Mise selects Node.js for this command. If Node.js 26 is already active, run the reporter directly with `node`. Look for the **Milestone work plan** heading, then follow an issue link and check it against [Vite’s milestone](https://github.com/vitejs/vite/milestone/36). A milestone with no open issues prints an explicit message. For your own roadmap, substitute its repository and numbers. For work without a milestone, start with the [Project query](.agents/skills/github-project-cycle/SKILL.md#generate-a-daily-plan). If the skill is already installed, follow the [update and rollback procedure](docs/agent-profiles.md#update-or-roll-back).
 
 ## Getting started
 
