@@ -13,6 +13,8 @@ Compare three versions when they are available: the last generated content, the 
 
 For text in Git, a three-way diff can help identify overlapping edits. For a workbook, compare actual cells and formulas for the same ID. For slides, update the agreed content inside the existing slide. A change of source unit, reporting period or meaning can conflict even when the text edits touch different lines.
 
+Reopen the saved copy and compare the protected features present in the original. A workbook editor can preserve cell values and formulas while dropping threaded comments. For a protected thread, check its text, author and attached cell in the saved file as well as the associated sheet. If the comparison fails, redo the edit from the intact original using a writer that preserves those features. For a customer copy, check comments, hidden content and speaker notes against the disclosure scope. Starting a clean deliverable can be appropriate for a different audience.
+
 Prepare and verify changes on a copy or in the editor's revision system. Before replacing an existing artifact, recheck that the version read is still current. Use a conditional save when the store supports one. If the source advanced or the editor cannot safely replace it, keep the verified candidate separately or reapply the comparison to the newer version. Retrying an unchanged input should preserve the existing result without adding duplicate rows, sections or new decisions.
 
 ## Compare editable fields with Node.js
