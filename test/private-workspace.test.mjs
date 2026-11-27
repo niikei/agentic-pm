@@ -879,3 +879,18 @@ test("conversational capture updates a stable note and resumes unfinished output
     restored.close();
   }
 });
+
+test("scanning a legacy snapshot skips its generated pages and keeps adjacent personal notes", (t) => {
+  const { dir, desk, db } = fixture(t);
+  register(db, "pilot", "Pilot", [dir]);
+  applyEvents(db, [events[0]]);
+  const folder = join(dir, "Older export");
+  exportBundle(db, folder, "pilot");
+  rmSync(join(folder, ".agentic-pm-snapshot"));
+  writeFileSync(join(folder, "Personal.md"), "My notes");
+  const result = scanNotes(db, desk, folder);
+  assert.deepEqual(
+    result.pending.map((row) => row.file.path.split(/[\\/]/).at(-1)),
+    ["Personal.md"],
+  );
+});

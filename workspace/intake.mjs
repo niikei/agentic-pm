@@ -1,7 +1,16 @@
 import { randomUUID } from "node:crypto";
-import { lstatSync, readdirSync, realpathSync, statSync } from "node:fs";
+import {
+  closeSync,
+  lstatSync,
+  openSync,
+  readdirSync,
+  readSync,
+  realpathSync,
+  statSync,
+} from "node:fs";
 import { dirname, extname, isAbsolute, join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
+import { indexPreamble } from "./okf.mjs";
 import { contains, inspectSource, locate } from "./sources.mjs";
 import { recordEvents, transaction } from "./store.mjs";
 import { bundles, refreshBundle } from "./vault.mjs";
@@ -22,6 +31,28 @@ function generatedDirectory(dir, desk, bound) {
         lstatSync(join(dir, name), { throwIfNoEntry: false }) !== undefined,
     )
   );
+}
+
+// Older snapshots predate the marker. Only their generated filenames are excluded.
+const legacyHeader = Buffer.from(indexPreamble);
+function hasLegacyIndex(dir, entries) {
+  if (!entries.some((entry) => entry.name === "index.md" && entry.isFile()))
+    return false;
+  const path = join(dir, "index.md");
+  try {
+    if (realpathSync(path) !== path) return false;
+    const fd = openSync(path, "r");
+    try {
+      const prefix = Buffer.alloc(legacyHeader.length);
+      return (
+        readSync(fd, prefix) === prefix.length && prefix.equals(legacyHeader)
+      );
+    } finally {
+      closeSync(fd);
+    }
+  } catch {
+    return false;
+  }
 }
 
 export function scanNotes(db, workspace, directory) {
@@ -57,9 +88,14 @@ export function scanNotes(db, workspace, directory) {
         skipped.push(dir);
         return;
       }
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const entries = readdirSync(dir, { withFileTypes: true });
+      const legacy = hasLegacyIndex(dir, entries);
+      for (const entry of entries) {
         const path = join(dir, entry.name);
         if (
+          (legacy &&
+            (entry.name === "index.md" ||
+              /^p-[a-z][a-z0-9-]*_i-[a-z][a-z0-9-]*\.md$/.test(entry.name))) ||
           entry.isSymbolicLink() ||
           entry.name.startsWith(".") ||
           entry.name === "node_modules"

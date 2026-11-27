@@ -8,6 +8,16 @@ import { fieldSources, history, items } from "./store.mjs";
 
 const status = { ...stages, done: "完了", reference: "参考情報" };
 
+export const indexPreamble = [
+  "---",
+  'okf_version: "0.3"',
+  "title: 作業記録",
+  "---",
+  "",
+  "# 作業記録",
+  "",
+].join("\n");
+
 function fieldValue(item, key) {
   if (key === "status") return status[item.status];
   if (key === "meeting") return meetingTime(item.meeting);
@@ -67,13 +77,7 @@ export function bundlePages(db, project) {
     body: concept(item, history(db, item.project, item.item)),
   }));
   const index = [
-    "---",
-    'okf_version: "0.3"',
-    "title: 作業記録",
-    "---",
-    "",
-    "# 作業記録",
-    "",
+    indexPreamble,
     ...pages.map((page) => `- [${markdownText(page.title)}](${page.name})`),
   ];
   return [...pages, { name: "index.md", body: `${index.join("\n")}\n` }];
