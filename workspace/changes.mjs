@@ -1,6 +1,5 @@
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { devNull } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { prepareReceipts } from "./intake.mjs";
 import { inspectReviewedFile } from "./sources.mjs";
@@ -52,6 +51,9 @@ export function noteChanges(db, directory, path) {
       mode: 0o600,
     });
     writeFileSync(join(scratch, "current"), body, { flag: "wx", mode: 0o600 });
+    // Git for Windows can open an ordinary empty config through either path API.
+    const config = join(scratch, "empty.gitconfig");
+    writeFileSync(config, "", { flag: "wx", mode: 0o600 });
     const env = Object.fromEntries(
       Object.entries(process.env).filter(
         ([key]) => !key.toUpperCase().startsWith("GIT_"),
@@ -84,7 +86,7 @@ export function noteChanges(db, directory, path) {
         env: {
           ...env,
           GIT_CONFIG_NOSYSTEM: "1",
-          GIT_CONFIG_GLOBAL: devNull,
+          GIT_CONFIG_GLOBAL: config,
           GIT_ATTR_NOSYSTEM: "1",
           GIT_CEILING_DIRECTORIES: dirname(scratch),
         },
@@ -106,8 +108,7 @@ export function noteChanges(db, directory, path) {
     return {
       ...selection,
       mode: "read",
-      reason:
-        "Git could not return a complete, bounded text diff. Read the current note.",
+      reason: `Git could not return a complete, bounded text diff (${diff.error?.code ?? diff.signal ?? diff.status}). Read the current note.`,
     };
   } finally {
     rmSync(scratch, { recursive: true, force: true });

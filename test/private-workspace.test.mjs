@@ -937,7 +937,7 @@ test("long-note changes use the accepted reading across commits, the index and w
   const index = git("ls-files", "--stage"),
     head = git("rev-parse", "HEAD");
   const result = noteChanges(db, desk, source);
-  assert.equal(result.mode, "diff");
+  assert.equal(result.mode, "diff", result.reason);
   assert.equal(result.previousSha256, first.file.sha256);
   for (const line of [
     "-Initial owner",
@@ -988,7 +988,8 @@ test("plain notes support older receipts, CRLF, oversized diffs and a missing Gi
   assert.equal(legacy.mode, "read");
   capture(db, desk, { events: [], reviewed: [legacy.file] });
   writeFileSync(note, "second\r\n");
-  assert.equal(noteChanges(db, desk, note).mode, "line-endings");
+  const endings = noteChanges(db, desk, note);
+  assert.equal(endings.mode, "line-endings", endings.reason);
   writeFileSync(note, "third\n");
   const cli = fileURLToPath(new URL("../workspace/cli.mjs", import.meta.url));
   const env = Object.fromEntries(
