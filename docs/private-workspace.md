@@ -31,6 +31,20 @@ The [synthetic meeting update](../workspace/examples/meeting.json) is ready to r
 
 A source path can match several projects. Use other explicit evidence to resolve it or capture the open question under the built-in `inbox` project. Keep an estimate with its assumptions, a confirmed deadline in `dueDate`, and the next check-in in `followUp`. Use `hypothesis` for an inference about a stakeholder and `question` for what would confirm it. Put only intentionally reader-ready wording in `managerUpdate`. Apply a correction to source systems such as GitHub only within the separate authority for that project.
 
+## Recheck a note that keeps changing
+
+For an explicitly selected local file, the agent can run `inspect` before reading it. The command returns matching project IDs and a `file` object containing the canonical path and SHA-256 fingerprint. Include that object in an update alongside a human-readable source locator, such as a heading, slide, cell or screenshot date. Intake rejects a new update if the selected file changed since inspection. Chat and pasted text can use a source label alone.
+
+```powershell
+node workspace/cli.mjs $desk inspect "C:\Notes\Work\Planning.md"
+node workspace/cli.mjs $desk review
+node workspace/cli.mjs $desk review pilot
+```
+
+At the next check-in, `review` compares only cited files and names the items affected by a changed, missing or unavailable source. A changed file prompts a reading of the relevant section. It can leave the work decision intact. If the evidence still supports the current value, record that value with the new fingerprint. An unavailable shared drive leaves the last recorded decision available offline. On a shared vault, the captured project determines which item needs review.
+
+An existing OKF concept also works as a selected Markdown source. Read its body and relevant provenance, then preserve its original properties. Obsidian's [Properties documentation](https://obsidian.md/help/properties) describes Source mode for nested metadata such as the OKF source list.
+
 ## Start the day or prepare a meeting
 
 Applying a batch refreshes the portfolio's `desk.html` in the private workspace. Open this file on the laptop. The first card links to the task and its dated evidence. The deadline chart counts confirmed deadlines. A separate list shows follow-ups, including requests for clarification. Refresh the desk at the start of a new day to advance the Tokyo date. Each project can also have its own desk.

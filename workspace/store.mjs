@@ -6,10 +6,11 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { isDeepStrictEqual } from "node:util";
 import Ajv from "ajv";
+import { inspectSource } from "./sources.mjs";
 
 const text = { type: "string", minLength: 1, pattern: "\\S" };
 const id = { type: "string", pattern: "^[a-z][a-z0-9-]{0,47}$" };
@@ -50,6 +51,15 @@ const validateEvent = ajv.compile({
     base: { type: "integer", minimum: 0 },
     observed: { type: "string", format: "date" },
     source: text,
+    file: {
+      type: "object",
+      required: ["path", "sha256"],
+      additionalProperties: false,
+      properties: {
+        path: text,
+        sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
+      },
+    },
     changes: {
       type: "object",
       minProperties: 1,
@@ -67,14 +77,6 @@ const validateEvent = ajv.compile({
 });
 
 const database = "workdesk.sqlite";
-function within(root, file) {
-  const rel = relative(root, file);
-  return (
-    rel === "" ||
-    (!isAbsolute(rel) && rel !== ".." && !rel.startsWith(`..${sep}`))
-  );
-}
-
 export function init(directory) {
   // Resolve the parent before checking boundaries, including directory junctions.
   const parent = realpathSync(dirname(resolve(directory)));
@@ -155,13 +157,6 @@ export function projects(db) {
     }));
 }
 
-export function locate(db, file) {
-  const target = realpathSync(file);
-  return projects(db)
-    .filter((project) => project.roots.some((root) => within(root, target)))
-    .map((project) => project.id);
-}
-
 export function applyEvents(db, events) {
   if (!Array.isArray(events) || !events.length)
     throw new Error("Expected a nonempty JSON array of updates.");
@@ -176,6 +171,13 @@ export function applyEvents(db, events) {
         if (!isDeepStrictEqual(JSON.parse(prior.payload), event))
           throw new Error(`Event ID already used: ${event.event}`);
         return { event: event.event, revision: prior.revision, replay: true };
+      }
+      if (event.file) {
+        const { file } = inspectSource(db, event.file.path, event.project);
+        if (!isDeepStrictEqual(file, event.file))
+          throw new Error(
+            "Source changed since selection. Read it again before applying.",
+          );
       }
       const current = db
         .prepare(
