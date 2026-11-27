@@ -96,3 +96,9 @@ The queue recognizes the board's **Todo** and **In Progress** statuses. Review c
 For parent coordination, the plan reads the first ten child relationships in GitHub's order. Open children in the same repository are linked with their recorded blocker counts, including children assigned to another milestone or to none. Follow a child to confirm its outcome and scope before picking it up. Follow the parent for the complete list.
 
 Change a priority or dependency on GitHub and rerun the command to replan. The [roadmap milestone](https://github.com/niikei/agentic-pm/milestone/3) and its [worked example](https://github.com/niikei/agentic-pm/issues/24) use the same records.
+
+### Identify the next operator
+
+The plan shows issue assignee counts and outstanding review request counts for each linked PR. Open the issue's **Assignees** or the PR's **Reviewers** to identify people and teams. An unassigned issue needs an owner for delivery. A PR with zero outstanding requests may already have reviews. Consult its review decision and requirements. These counts are omitted from the progress snapshot.
+
+When work actually awaits a human decision, record the specific question and who has authority on the issue. Apply the optional `needs decision` label. The plan routes the issue to **Human decisions**, including when implementation checks have passed. An open prerequisite takes precedence and the decision remains visible. Remove the label after the authorized person records the outcome. Assignment and review requests do not grant merge or release authority.

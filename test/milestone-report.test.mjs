@@ -139,10 +139,13 @@ test("shows current head checks and review decisions per visible PR in planning 
   ];
   const plan = renderReport([input], { plan: true });
   assert.match(plan, /Investigate the failing checks/);
-  assert.match(plan, /pull\/9\) \(checks: failure, review: review required\)/);
   assert.match(
     plan,
-    /pull\/10\) \(draft\) \(checks: unreported, review: unreported\)/,
+    /pull\/9\) \(checks: failure, review: review required, outstanding review requests: unreported\)/,
+  );
+  assert.match(
+    plan,
+    /pull\/10\) \(draft\) \(checks: unreported, review: unreported, outstanding review requests: unreported\)/,
   );
   assert.doesNotMatch(renderReport([input]), /checks:|review:/);
   pr.commits.nodes = [];
@@ -198,6 +201,7 @@ function planningPage(numbers) {
   for (const issue of repo.milestone.issues.nodes) {
     issue.body = "### Acceptance criteria\n\n- Verify issue " + issue.number;
     issue.blockedBy = { nodes: [] };
+    issue.labels = { nodes: [], pageInfo: { hasNextPage: false } };
     issue.projectItems.nodes.push({
       project: { id: "board" },
       fieldValueByName: { name: "Todo" },
@@ -340,5 +344,50 @@ test("lists bounded parent evidence without enrolling children into the mileston
   assert.doesNotMatch(
     renderReport([input], { plan: true }),
     /Inspect all child relationships/,
+  );
+});
+
+test("routes explicit decisions and preserves ownership, review and blocking evidence", () => {
+  const input = planningPage([1, 2, 3]);
+  const [decision, blocked, truncated] =
+    input.data.repository.milestone.issues.nodes;
+  for (const issue of [decision, blocked]) {
+    issue.labels = {
+      nodes: [{ name: "Needs Decision" }],
+      pageInfo: { hasNextPage: false },
+    };
+  }
+  truncated.labels = { nodes: [], pageInfo: { hasNextPage: true } };
+  decision.assignees = { totalCount: 0 };
+  blocked.assignees = { totalCount: 2 };
+  blocked.issueDependenciesSummary.blockedBy = 1;
+  const pr = {
+    number: 5,
+    url: "https://example.org/pull/5",
+    state: "OPEN",
+    repository: { id: "repo" },
+    reviewRequests: { totalCount: 1 },
+  };
+  decision.closedByPullRequestsReferences.nodes.push(pr);
+  const plan = renderReport([input], { plan: true });
+  assert.match(plan, /### Human decisions[\s\S]*?authorized decision maker/);
+  assert.match(plan, /Unassigned · \[Issue assignees\]/);
+  assert.match(plan, /outstanding review requests: 1/);
+  assert.match(
+    plan,
+    /### Waiting on dependencies[\s\S]*?2 assigned[\s\S]*?Decision pending/,
+  );
+  assert.match(
+    plan,
+    /### Needs triage[\s\S]*?all issue labels[\s\S]*?Assignment unreported/,
+  );
+  pr.reviewRequests.totalCount = 0;
+  assert.match(
+    renderReport([input], { plan: true }),
+    /outstanding review requests: 0/,
+  );
+  assert.doesNotMatch(
+    renderReport([input]),
+    /Issue assignees|Human decisions|review requests/,
   );
 });

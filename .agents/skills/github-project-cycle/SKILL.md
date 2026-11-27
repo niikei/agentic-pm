@@ -25,10 +25,18 @@ Read the issue body and latest decision before choosing work. A parent groups ou
 
 ## Generate a daily plan
 
-With Node.js 26 and an authenticated GitHub CLI that can read the public Project, run this command from the adopting checkout's root. Supply the repository, its owner's Project number and its milestone number. The bundled reporter reads GitHub and prints Markdown.
+From the adopting checkout, identify the repository and its open milestones. Replace `OWNER` with the repository owner to list their public Projects. Choose the Project and milestone for the work you intend to plan. A repository can have several milestones and an issue can be off the board.
+
+```sh
+gh repo view --json nameWithOwner --jq .nameWithOwner
+gh project list --owner OWNER --format json --jq '.projects[] | select(.public) | [.number,.title] | @tsv'
+gh api --paginate 'repos/{owner}/{repo}/milestones?state=open' --jq '.[] | [.number,.title] | @tsv'
+```
+
+With Node.js 26 and an authenticated GitHub CLI that can read the public Project, supply those three inputs to the bundled reporter. It reads GitHub and prints Markdown.
 
 ```sh
 node .agents/skills/github-project-cycle/scripts/milestone-report.mjs OWNER/REPO PROJECT_NUMBER MILESTONE_NUMBER --plan
 ```
 
-Follow the issue and PR links for the current assignees, acceptance criteria and outstanding decisions. Omit `--plan` for milestone totals.
+Follow the issue and PR links for the current assignees, acceptance criteria and reviewers. When an issue has the `needs decision` label, read its question and identify who can authorize the next step. Record the decision before resuming that work. Omit `--plan` for milestone totals.
