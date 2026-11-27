@@ -16,6 +16,7 @@ import { join, parse } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { noteChanges } from "../workspace/changes.mjs";
 import { capture, publishCaptured, scanNotes } from "../workspace/intake.mjs";
 import { exportBundle } from "../workspace/okf.mjs";
 import { inspectSource, locate, reviewSources } from "../workspace/sources.mjs";
@@ -893,4 +894,155 @@ test("scanning a legacy snapshot skips its generated pages and keeps adjacent pe
     result.pending.map((row) => row.file.path.split(/[\\/]/).at(-1)),
     ["Personal.md"],
   );
+});
+
+test("long-note changes use the accepted reading across commits, the index and working edits", (t) => {
+  const { dir, desk, db } = fixture(t);
+  const notes = join(dir, "Source repo");
+  mkdirSync(notes);
+  register(db, "pilot", "Pilot", [notes]);
+  const source = join(notes, "受付 [draft].md");
+  const git = (...args) => {
+    const result = spawnSync(
+      "git",
+      [
+        "-c",
+        "user.name=Fixture",
+        "-c",
+        "user.email=fixture@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
+        ...args,
+      ],
+      { cwd: notes, encoding: "utf8" },
+    );
+    assert.equal(result.status, 0, result.stderr);
+    return result.stdout;
+  };
+  git("init", "-q");
+  writeFileSync(source, "Committed earlier\n");
+  git("add", "-A");
+  git("commit", "-qm", "Initial");
+  const baseline = "Initial owner\nTentative quantity\nRoom A\n";
+  writeFileSync(source, baseline);
+  const first = noteChanges(db, desk, source);
+  assert.equal(first.mode, "read");
+  capture(db, desk, { events: [], reviewed: [first.file] });
+  writeFileSync(source, baseline.replace("Initial owner", "Reception owner"));
+  git("add", "-A");
+  git("commit", "-qm", "Owner");
+  writeFileSync(source, "Reception owner\nConfirmed 60\nRoom A\n");
+  git("add", "-A");
+  writeFileSync(source, "Reception owner\nConfirmed 60\nRoom B\n");
+  const index = git("ls-files", "--stage"),
+    head = git("rev-parse", "HEAD");
+  const result = noteChanges(db, desk, source);
+  assert.equal(result.mode, "diff", result.reason);
+  assert.equal(result.previousSha256, first.file.sha256);
+  for (const line of [
+    "-Initial owner",
+    "-Tentative quantity",
+    "-Room A",
+    "+Reception owner",
+    "+Confirmed 60",
+    "+Room B",
+  ])
+    assert.ok(result.patch.includes(line), line);
+  assert.doesNotMatch(result.patch, /Committed earlier/);
+  assert.equal(git("ls-files", "--stage"), index);
+  assert.equal(git("rev-parse", "HEAD"), head);
+  assert.throws(
+    () =>
+      capture(db, desk, {
+        events: [{ ...events[0], base: 9 }],
+        reviewed: [result.file],
+      }),
+    /revision/,
+  );
+  assert.deepEqual(noteChanges(db, desk, source), result);
+  appendFileSync(source, "Late edit\n");
+  assert.throws(
+    () => capture(db, desk, { events: [], reviewed: [result.file] }),
+    /changed/,
+  );
+  const latest = noteChanges(db, desk, source);
+  capture(db, desk, { events: [], reviewed: [latest.file] });
+  assert.equal(noteChanges(db, desk, source).mode, "unchanged");
+});
+
+test("plain notes support older receipts, CRLF, oversized diffs and a missing Git executable", (t) => {
+  const { dir, desk, db } = fixture(t);
+  register(db, "pilot", "Pilot", [dir]);
+  const note = join(dir, "議事録.txt");
+  writeFileSync(note, "first\n");
+  const first = inspectSource(db, note).file;
+  db.exec(
+    "CREATE TABLE reviewed_notes(path TEXT PRIMARY KEY,sha256 TEXT NOT NULL)",
+  );
+  db.prepare("INSERT INTO reviewed_notes VALUES (?,?)").run(
+    first.path,
+    first.sha256,
+  );
+  writeFileSync(note, "second\n");
+  const legacy = noteChanges(db, desk, note);
+  assert.equal(legacy.mode, "read");
+  capture(db, desk, { events: [], reviewed: [legacy.file] });
+  writeFileSync(note, "second\r\n");
+  const endings = noteChanges(db, desk, note);
+  assert.equal(endings.mode, "line-endings", endings.reason);
+  writeFileSync(note, "third\n");
+  const cli = fileURLToPath(new URL("../workspace/cli.mjs", import.meta.url));
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => key.toUpperCase() !== "PATH"),
+  );
+  const fallback = spawnSync(process.execPath, [cli, desk, "changes", note], {
+    env: { ...env, PATH: desk },
+    encoding: "utf8",
+  });
+  assert.equal(fallback.status, 0, fallback.stderr);
+  assert.equal(JSON.parse(fallback.stdout).mode, "read");
+  writeFileSync(note, "x".repeat(150000));
+  assert.equal(noteChanges(db, desk, note).mode, "read");
+  writeFileSync(note, Buffer.from([0xff, 0x00, 0x02]));
+  assert.equal(noteChanges(db, desk, note).mode, "read");
+  assert.ok(readdirSync(desk).every((name) => !name.startsWith(".note-diff-")));
+});
+
+test("a correction identifies only live fields from the shared source across teams", (t) => {
+  const { dir, desk, db } = fixture(t);
+  for (const project of ["pilot", "venue"])
+    register(db, project, project, [dir]);
+  const path = join(dir, "Joint minutes.md");
+  writeFileSync(path, "Confirmed 80 copies. Signs installed.\n");
+  const { file } = inspectSource(db, path);
+  const event = {
+    ...events[0],
+    file,
+    changes: { title: "Print", status: "ready", managerUpdate: "80 copies." },
+  };
+  const other = {
+    ...event,
+    event: "signs",
+    project: "venue",
+    item: "signs",
+    changes: { title: "Signs", status: "done", managerUpdate: "Installed." },
+  };
+  capture(db, desk, { events: [event, other], reviewed: [file] });
+  applyEvents(db, [
+    {
+      ...events[0],
+      event: "via-chat",
+      base: 1,
+      changes: { title: "Order printing", managerUpdate: null },
+    },
+  ]);
+  writeFileSync(path, "Confirmed 60 copies. Signs installed.\n");
+  assert.deepEqual(noteChanges(db, desk, path).citedBy, [
+    { project: "pilot", item: event.item, fields: ["status"] },
+    {
+      project: "venue",
+      item: "signs",
+      fields: ["title", "status", "managerUpdate"],
+    },
+  ]);
 });
