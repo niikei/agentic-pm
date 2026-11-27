@@ -88,6 +88,7 @@ function privateNotes(task) {
   const facts = [
     ["会議の時間", task.meetingLabel],
     ["次回確認日", task.followUp],
+    ["仮の見通し", task.forecast],
     ["見積もりと前提", task.estimate],
     ["関係者についての仮説", task.hypothesis],
   ];

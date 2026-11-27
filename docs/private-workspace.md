@@ -43,6 +43,8 @@ The [synthetic meeting update](../workspace/examples/meeting.json) is ready to r
 
 A source path can match several projects. Use other explicit evidence to resolve it or capture the open question under the built-in `inbox` project. Keep an estimate with its assumptions, a confirmed deadline in `dueDate`, and the next check-in in `followUp`. Use `hypothesis` for an inference about a stakeholder and `question` for what would confirm it. Put only intentionally reader-ready wording in `managerUpdate`. Apply a correction to source systems such as GitHub only within the separate authority for that project.
 
+When a document proposes a date or the user requests an AI forecast, keep it in `forecast`. Supply `from`, optional `through`, `origin` (`source` or `agent`) and `basis`. For example, a slide proposing December 4 can supply `{"from":"2026-12-04","origin":"source","basis":"Distribution depends on the reviewer's sign-off."}`. The agenda labels tentative dates separately. Record workbook effort in `estimate`, including its unit and staffing assumption. On confirmation, record the actual `dueDate` and clear the superseded forecast in one update.
+
 For a fixed appointment, record `meeting` with an ISO 8601 `start` and an optional `end`, both with a timezone offset. For example, a calendar showing December 2 from 10:30 to 11:00 JST supplies `{"start":"2026-12-02T10:30:00+09:00","end":"2026-12-02T11:00:00+09:00"}`. Upcoming and ongoing meetings have their own list in the desk and agenda. Preserve an unknown purpose or project as a question. Use a work deadline only when a source confirms the delivery commitment.
 
 ## Work across code repositories
