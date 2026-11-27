@@ -539,3 +539,36 @@ test("marks confirmed merge conflicts on the affected PRs while preserving other
   assert.match(renderReport([input], { plan: true }), /Review the open PR/);
   assert.doesNotMatch(renderReport([input], { plan: true }), /merge conflict/);
 });
+
+test("routes known public external implementation without publishing external PR metadata", () => {
+  const input = planningPage([1]);
+  const [issue] = input.data.repository.milestone.issues.nodes;
+  const external = {
+    state: "OPEN",
+    url: "https://example.org/another-repo/pull/9",
+    repository: { id: "external", visibility: "PUBLIC" },
+  };
+  issue.closedByPullRequestsReferences.nodes.push(external);
+  const plan = () => renderReport([input], { plan: true });
+
+  assert.match(
+    plan(),
+    /### Pull requests[\s\S]*linked PR in the other public repository/,
+  );
+  assert.doesNotMatch(plan(), /another-repo|Pick up the issue/);
+  assert.doesNotMatch(
+    renderReport([input]),
+    /another-repo|other public repository/,
+  );
+  for (const visibility of ["PRIVATE", "INTERNAL", undefined]) {
+    external.repository.visibility = visibility;
+    assert.match(plan(), /Pick up the issue/);
+    assert.doesNotMatch(plan(), /other public repository|another-repo/);
+  }
+  external.repository.visibility = "PUBLIC";
+  external.state = "MERGED";
+  assert.match(plan(), /Pick up the issue/);
+  external.state = "OPEN";
+  issue.issueDependenciesSummary.blockedBy = 1;
+  assert.match(plan(), /### Waiting on dependencies/);
+});

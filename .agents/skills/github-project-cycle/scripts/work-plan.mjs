@@ -104,7 +104,20 @@ function nextAction(issue, repo, item, prs, criteria, needsDecision) {
       : "Continue the draft implementation.";
     return ["Pull requests", next];
   }
-  if (issue.closedByPullRequestsReferences.pageInfo.hasNextPage)
+  const linked = issue.closedByPullRequestsReferences;
+  if (
+    linked.nodes.some(
+      (pr) =>
+        pr.state === "OPEN" &&
+        pr.repository.id !== repo.id &&
+        pr.repository.visibility === "PUBLIC",
+    )
+  )
+    return [
+      "Pull requests",
+      "Open the issue's linked PR in the other public repository and check its review status before starting work.",
+    ];
+  if (linked.pageInfo.hasNextPage)
     return [
       "Needs triage",
       "Inspect the remaining linked PRs before starting work.",
