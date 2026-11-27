@@ -57,4 +57,23 @@ For a historical handoff, set a UTC cutoff first. Use dated events to establish 
 gh api --paginate 'repos/OWNER/REPO/issues/NUMBER/timeline?per_page=100' --jq '.[] | select(.created_at != null and .created_at <= "YYYY-MM-DDTHH:MM:SSZ") | select(.event == "milestoned" or .event == "demilestoned" or .event == "closed" or .event == "reopened") | [.created_at, .id, .event, (.milestone.title // ""), (.state_reason // ""), (.commit_id // "")] | @tsv'
 ```
 
-When using an event as the cutoff, stop at its ID in timeline order. Carry forward the last observed transition. A closure reason supports the recorded disposition. Verifying implementation or shipment requires contemporaneous PR, test or release evidence. Leave ownership and approval unknown when the available history does not establish them. The milestone reporter shows current GitHub state.
+A timestamp includes every transition in that second. For an event cutoff, stop at its ID in timeline order. If the anchor is a comment or another filtered event, include it in the event filter with `or .id == EVENT_ID` so the boundary is visible. If the anchor is missing, report the cutoff as unverified. Carry forward the last observed state and milestone separately.
+
+For a duplicate closure, use the numeric ID from that closure row to find the canonical issue or PR. Include its link in a public handoff only when the target repository is public. An empty result leaves the target unknown.
+
+```sh
+event_node=$(gh api repos/OWNER/REPO/issues/events/EVENT_ID --jq .node_id)
+gh api graphql -f id="$event_node" -f query='
+  query($id: ID!) {
+    node(id: $id) {
+      ... on ClosedEvent {
+        duplicateOf {
+          ... on UniformResourceLocatable { url }
+          ... on RepositoryNode { repository { visibility } }
+        }
+      }
+    }
+  }' --jq '.data.node.duplicateOf | select(.repository.visibility == "PUBLIC") | .url'
+```
+
+A closure reason supports the recorded disposition. Verifying implementation or shipment requires contemporaneous PR, test or release evidence. Leave ownership and approval unknown when the available history does not establish them. The milestone reporter shows current GitHub state.
