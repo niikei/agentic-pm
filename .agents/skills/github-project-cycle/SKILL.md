@@ -53,10 +53,10 @@ The first line reports how many matches are shown. Each row gives the issue URL,
 
 For a selected issue, inspect its assignment, closing PR links, body and recent discussion. A comment can mention work that has no formal closing link. Open a relevant PR to confirm its current draft, review and check status before proposing duplicate work. Treat an unset board status as a triage question. Identify the observable acceptance example or ask what would demonstrate completion.
 
-For milestone work, with Node.js 26 and an authenticated GitHub CLI that can read the public Project, supply the repository and both numbers to the bundled reporter. It reads GitHub and prints Markdown.
+For milestone work, change into the installed directory containing this `SKILL.md`. With Node.js 26 and an authenticated GitHub CLI that can read the public Project, run the bundled reporter. It reads GitHub and prints Markdown.
 
 ```sh
-node .agents/skills/github-project-cycle/scripts/milestone-report.mjs OWNER/REPO PROJECT_NUMBER MILESTONE_NUMBER --plan
+node scripts/milestone-report.mjs OWNER/REPO PROJECT_NUMBER MILESTONE_NUMBER --plan
 ```
 
 Follow the issue and PR links for the current assignees, acceptance criteria and reviewers. When an issue has the `needs decision` label, read its question and identify who can authorize the next step. Record the decision before resuming that work. Omit `--plan` for milestone totals.

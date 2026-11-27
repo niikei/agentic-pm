@@ -6,16 +6,26 @@ All profiles use the same [project-cycle skill](../.agents/skills/github-project
 
 From the destination Git checkout, use GitHub CLI's project-scoped installer. Replace `REVIEWED_COMMIT` with the full commit SHA you intend to adopt. Preview the instructions and inspect all files in the skill directory at that commit, including the JavaScript and GraphQL query, before installation. The hidden-directory flag includes this repository's `.agents/skills` directory in the search. [GitHub CLI installation reference](https://cli.github.com/manual/gh_skill_install)
 
+GitHub CLI installed the same skill files at the following project-scoped locations. Choose the agent and directory together. The commands use the Codex row. [Installation trial](https://github.com/niikei/agentic-pm/issues/81)
+
+| Installer target | Project directory                     |
+| ---------------- | ------------------------------------- |
+| `codex`          | `.agents/skills/github-project-cycle` |
+| `github-copilot` | `.agents/skills/github-project-cycle` |
+| `claude-code`    | `.claude/skills/github-project-cycle` |
+
 ```sh
+agent=codex
+skill_dir=.agents/skills/github-project-cycle
 gh skill preview niikei/agentic-pm github-project-cycle@REVIEWED_COMMIT --allow-hidden-dirs
-gh skill install niikei/agentic-pm github-project-cycle --pin REVIEWED_COMMIT --allow-hidden-dirs --agent codex --scope project
-gh skill list --agent codex --scope project --json skillName,version,pinned
+gh skill install niikei/agentic-pm github-project-cycle --pin REVIEWED_COMMIT --allow-hidden-dirs --agent "$agent" --scope project
+gh skill list --agent "$agent" --scope project --json skillName,version,pinned
 ```
 
 From the destination root, use Node.js 26 and an authenticated `gh` with read access to the public Project. The example selects the runtime for one command with mise. If Node.js 26 is already active, run the reporter directly with `node`.
 
 ```sh
-mise exec node@26.13.1 -- node .agents/skills/github-project-cycle/scripts/milestone-report.mjs vitejs/vite 1 36 --plan
+mise exec node@26.13.1 -- node "$skill_dir/scripts/milestone-report.mjs" vitejs/vite 1 36 --plan
 ```
 
 Verify that the output starts with **Milestone work plan** and links to the requested Project and milestone. Compare an issue in the plan with its GitHub record. A milestone with no open issues prints a message below the heading. Substitute your repository, Project number and milestone number for subsequent runs.
@@ -26,15 +36,15 @@ Commit the installed directory so the team can review and reproduce the chosen v
 
 Start on an update branch with a clean working tree. Commit or save local edits first. In a consumer trial, reinstalling with `--force` overwrote a customized file but retained files absent from the selected revision. The CLI reported the requested pin even with the extra files present.
 
-Preview the new commit and review its skill sources. Move the installed copy into a temporary directory, then install into the empty destination. Keep the backup until the updated plan works. If installation fails, move the partial copy aside and restore the backup.
+From the destination root, set `agent` and `skill_dir` to the same row used for installation. Preview the new commit and review its skill sources. Move the installed copy into a temporary directory, then install into the empty destination. Keep the backup until the updated plan works. If installation fails, move the partial copy aside and restore the backup.
 
 ```sh
 backup_dir=$(mktemp -d)
-mv .agents/skills/github-project-cycle "$backup_dir/"
-gh skill install niikei/agentic-pm github-project-cycle --pin REVIEWED_COMMIT --allow-hidden-dirs --agent codex --scope project
-gh skill list --agent codex --scope project --json skillName,version,pinned
-git add -A -- .agents/skills/github-project-cycle
-git diff --cached -- .agents/skills/github-project-cycle
+mv "$skill_dir" "$backup_dir/"
+gh skill install niikei/agentic-pm github-project-cycle --pin REVIEWED_COMMIT --allow-hidden-dirs --agent "$agent" --scope project
+gh skill list --agent "$agent" --scope project --json skillName,version,pinned
+git add -A -- "$skill_dir"
+git diff --cached -- "$skill_dir"
 ```
 
 Compare intentional customizations with the backup and reapply the ones you need. Review the final staged changes, including removals. Check that `gh skill list` reports the intended version and `pinned: true`. Rerun the plan and commit the skill update separately.
@@ -53,7 +63,7 @@ In a read-only trial with two local GitHub captures, Codex CLI selected and read
 
 ## GitHub Copilot
 
-**Optional, native intake trial open.** Open Copilot Chat on GitHub in a session with repository issue access. GitHub documents editable issue drafts and sub-issue trees. [GitHub's issue creation guide](https://docs.github.com/en/copilot/how-tos/copilot-on-github/copilot-for-github-tasks/use-copilot-to-create-or-update-issues)
+**Optional, native intake trial open.** The project-scoped installer and a direct Node run of the bundled reporter were verified. To try issue drafting, open Copilot Chat on GitHub in a session with repository issue access. GitHub documents editable issue drafts and sub-issue trees. [GitHub's issue creation guide](https://docs.github.com/en/copilot/how-tos/copilot-on-github/copilot-for-github-tasks/use-copilot-to-create-or-update-issues)
 
 > For OWNER/REPO#PARENT, draft a work breakdown for OUTCOME under CONSTRAINTS. Reuse matching issues. For each missing deliverable, draft a Project task with an outcome, observable acceptance criteria and public evidence. Explain dependencies. Leave owners and dates open.
 
@@ -61,4 +71,4 @@ Review the proposed tree for duplicates and edit the fields. Select **Review and
 
 ## Claude Code
 
-**Unverified.** For a future trial, open the checkout in Claude Code, supply the shared skill's path and ask for a draft against a real parent issue. Record the invocation, corrections, issue relationships, board membership and PR checks before claiming end-to-end compatibility. Claude Code's skill-loading conventions are documented upstream. [Claude Code skills](https://code.claude.com/docs/en/skills)
+**Installation verified, agent execution unverified.** GitHub CLI installed the skill at project scope and Node ran its reporter from that directory. For a Claude Code trial, open the checkout, supply the installed skill’s path and ask for a draft against a real parent issue. Record the invocation, corrections, issue relationships, board membership and PR checks before claiming end-to-end compatibility. Claude Code's skill-loading conventions are documented upstream. [Claude Code skills](https://code.claude.com/docs/en/skills)
