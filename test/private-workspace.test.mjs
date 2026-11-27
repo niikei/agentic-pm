@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { execFile, spawnSync } from "node:child_process";
 import {
   appendFileSync,
   cpSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -13,6 +14,7 @@ import { tmpdir } from "node:os";
 import { join, parse } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { exportBundle } from "../workspace/okf.mjs";
 import { inspectSource, locate, reviewSources } from "../workspace/sources.mjs";
 import {
@@ -562,4 +564,73 @@ test("private evidence can open an explicit permalink while the manager draft st
     managerBrief(db, undefined, "2026-11-28T00:00:00Z"),
     /https?:|private note\.md|issuecomment/,
   );
+});
+
+test("late-arriving evidence can add independent details and preserves newer field decisions", (t) => {
+  const { db } = fixture(t);
+  register(db, "pilot", "試行", []);
+  applyEvents(db, events);
+  const current = {
+    ...events[0],
+    event: "cancel-commitment",
+    base: 1,
+    observed: "2026-11-28",
+    changes: { dueDate: null },
+  };
+  applyEvents(db, [current]);
+  const earlier = {
+    ...current,
+    event: "older-note",
+    base: 2,
+    observed: "2026-11-26",
+    changes: { estimate: "One day", dueDate: "2026-12-01" },
+  };
+  assert.throws(() => applyEvents(db, [earlier]), /Later evidence.*dueDate/);
+  applyEvents(db, [
+    {
+      ...earlier,
+      changes: {
+        hypothesis: "Ask whether the earlier audience still applies.",
+      },
+    },
+  ]);
+  const [result] = items(db, "pilot");
+  assert.equal(result.dueDate, null);
+  assert.equal(result.revision, 3);
+  assert.equal(history(db, "pilot", result.item)[1].observed, "2026-11-28");
+});
+
+test("competing CLI sessions preserve one winning revision; output recovery can replay saved intake", async (t) => {
+  const { dir, desk, db } = fixture(t);
+  register(db, "pilot", "試行", []);
+  const cli = fileURLToPath(new URL("../workspace/cli.mjs", import.meta.url));
+  const inputs = [
+    events[0],
+    { ...events[0], event: "concurrent-observation" },
+  ].map((event) => {
+    const path = join(dir, `${event.event}.json`);
+    writeFileSync(path, JSON.stringify([event]));
+    return path;
+  });
+  const call = (...args) =>
+    promisify(execFile)(process.execPath, [cli, desk, ...args], {
+      encoding: "utf8",
+    });
+  mkdirSync(join(desk, "desk.html"));
+  const result = await Promise.allSettled(
+    inputs.map((file) => call("apply", file)),
+  );
+  const saved = result.find((entry) => entry.reason?.code === 2)?.reason;
+  const stale = result.find((entry) => entry.reason?.code === 1)?.reason;
+  assert.ok(saved);
+  assert.match(saved.stderr, /Intake saved/);
+  assert.match(stale.stderr, /current revision/);
+  const [{ event }] = JSON.parse(saved.stdout).updates;
+  assert.equal(history(db, "pilot", events[0].item).length, 1);
+  renameSync(join(desk, "desk.html"), join(desk, "preserved-directory"));
+  const retry = JSON.parse(
+    (await call("apply", join(dir, `${event}.json`))).stdout,
+  );
+  assert.equal(retry.updates[0].replay, true);
+  assert.ok(readFileSync(retry.desk, "utf8").includes(events[0].changes.title));
 });

@@ -181,6 +181,14 @@ export function projects(db) {
     }));
 }
 
+export function fieldSources(events) {
+  const sources = new Map();
+  for (const event of events) {
+    for (const key of Object.keys(event.changes)) sources.set(key, event);
+  }
+  return sources;
+}
+
 export function applyEvents(db, events) {
   if (!Array.isArray(events) || !events.length)
     throw new Error("Expected a nonempty JSON array of updates.");
@@ -215,6 +223,16 @@ export function applyEvents(db, events) {
         throw new Error(
           `Read the current revision of ${event.project}/${event.item} and reconcile the update.`,
         );
+      if (current) {
+        const sources = fieldSources(history(db, event.project, event.item));
+        const older = Object.keys(event.changes).filter(
+          (key) => sources.get(key)?.observed > event.observed,
+        );
+        if (older.length)
+          throw new Error(
+            `Later evidence exists for ${event.project}/${event.item}: ${older.join(", ")}. Reconcile the source dates.`,
+          );
+      }
       const state = {
         ...(current ? JSON.parse(current.state) : {}),
         ...event.changes,
