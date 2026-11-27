@@ -4,6 +4,7 @@ query MilestoneReport(
   $project: Int!
   $milestone: Int!
   $plan: Boolean! = false
+  $states: [IssueState!]
   $endCursor: String
 ) {
   repository(owner: $owner, name: $repo) {
@@ -34,6 +35,7 @@ query MilestoneReport(
       issues(
         first: 50
         after: $endCursor
+        states: $states
         orderBy: { field: CREATED_AT, direction: ASC }
       ) {
         totalCount
