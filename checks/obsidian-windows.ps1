@@ -42,8 +42,9 @@ function Open-TrialNote($relativePath) {
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
     $start.ArgumentList.Add("--user-data-dir=$profileDir")
-    $destination = [uri]::EscapeDataString((Join-Path $vault $relativePath))
-    $start.ArgumentList.Add("obsidian://open?path=$destination")
+    $start.ArgumentList.Add("--force-renderer-accessibility")
+    $destination = [uri]::EscapeDataString($relativePath)
+    $start.ArgumentList.Add("obsidian://open?vault=0123456789abcdef&file=$destination")
     $client = [System.Diagnostics.Process]::Start($start)
     $client.BeginOutputReadLine()
     $client.BeginErrorReadLine()
@@ -80,6 +81,13 @@ function Confirm-TrialNote($relativePath) {
     } while ([datetime]::UtcNow -lt $deadline)
     $hasWorkspace = Test-Path $workspaceFile
     $trialTitles = @($windows | ForEach-Object { $_.MainWindowTitle })
+    Add-Type -AssemblyName UIAutomationClient
+    foreach ($window in $windows) {
+        $tree = [System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)
+        $elements = $tree.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+        $prompts = @($elements | ForEach-Object { $_.Current.Name } | Where-Object { $_ -match 'trust|restricted mode|safe mode|open vault|release notes|index|Synthetic Vault' } | Sort-Object -Unique | Select-Object -First 12)
+        Write-Output "Recognized synthetic UI elements: $($prompts -join ', ')"
+    }
     Write-Output "Synthetic client windows: $($windows.Count). Persisted workspace: $hasWorkspace. Trial titles: $($trialTitles -join ', ')"
     throw "The desktop client did not report an active Markdown leaf for $relativePath."
 }
