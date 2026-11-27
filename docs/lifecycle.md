@@ -68,7 +68,7 @@ The command reads live GitHub data and writes Markdown to standard output.
 Each milestone issue appears once with its number and title, including issues
 missing from the board. Follow the title to read the decision or acceptance criteria.
 The Project status, open dependency count and sub-issue counts come from
-GitHub. Closed includes issues closed as not planned. External blockers such
+GitHub. Closed totals cover every closure. Each closed row shows the reason GitHub supplies, or **reason unreported**. For a decision at an earlier date, use the [timestamped issue timeline](../.agents/skills/github-project-cycle/SKILL.md#recover-a-decision-at-a-past-date). External blockers such
 as a pending login belong in the accompanying decision or handoff.
 
 In planning mode, each PR link includes GitHub's aggregate check state for its current head commit and its review decision. Follow the PR to inspect failures, individual reviews and merge requirements. An unreported value means the API supplied no matching evidence.

@@ -25,7 +25,7 @@ for (const { repository, project, milestone } of cases) {
       "--paginate",
       `repos/${repository}/issues?milestone=${milestone}&state=all&per_page=100`,
       "--jq",
-      '.[] | select(has("pull_request") | not) | {url: .html_url, state} | @json',
+      '.[] | select(has("pull_request") | not) | {url: .html_url, state, state_reason} | @json',
     ]);
     const issues = issueList
       .trim()
@@ -39,12 +39,20 @@ for (const { repository, project, milestone } of cases) {
 
     const rows = [
       ...snapshot.matchAll(
-        /^\| \[#[^\n]*?\]\(([^)]+)\) \| (open|closed)(?: \((?:completed|not planned|duplicate|reason unreported)\))? \|/gim,
+        /^\| \[#[^\n]*?\]\(([^)]+)\) \| (open|closed \([^)]+\)) \|/gim,
       ),
     ];
     assert.deepEqual(
       rows.map((row) => `${row[1]} ${row[2].toLowerCase()}`).sort(),
-      issues.map((issue) => `${issue.url} ${issue.state}`).sort(),
+      issues
+        .map((issue) => {
+          const state =
+            issue.state === "open"
+              ? "open"
+              : `closed (${issue.state_reason?.replaceAll("_", " ") ?? "reason unreported"})`;
+          return `${issue.url} ${state}`;
+        })
+        .sort(),
     );
     assert.ok(
       snapshot.includes(
