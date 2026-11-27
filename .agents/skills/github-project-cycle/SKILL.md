@@ -59,13 +59,15 @@ Follow the issue and PR links for the current assignees, acceptance criteria and
 
 ## Recover a decision at a past date
 
-For a historical handoff, set a UTC cutoff first. Use dated events to establish issue state and milestone membership. Replace the placeholders in this read-only command and use a timestamp in GitHub's UTC format.
+Choose a UTC cutoff and read the dated transitions through that second.
 
 ```sh
 gh api --paginate 'repos/OWNER/REPO/issues/NUMBER/timeline?per_page=100' --jq '.[] | select(.created_at != null and .created_at <= "YYYY-MM-DDTHH:MM:SSZ") | select(.event == "milestoned" or .event == "demilestoned" or .event == "closed" or .event == "reopened") | [.created_at, .id, .event, (.milestone.title // ""), (.state_reason // ""), (.commit_id // "")] | @tsv'
 ```
 
-A timestamp includes every transition in that second. For an event cutoff, stop at its ID in timeline order. If the anchor is a comment or another filtered event, include it in the event filter with `or .id == EVENT_ID` so the boundary is visible. If the anchor is missing, report the cutoff as unverified. Carry forward the last observed state and milestone separately.
+For an event cutoff, stop at its ID in timeline order. Add `or .id == EVENT_ID` to the event filter for a comment or other filtered anchor. If the anchor is missing, report the cutoff as unverified.
+
+For an empty timeline, check `gh issue view NUMBER --repo OWNER/REPO --json createdAt --jq .createdAt`. Before creation, the issue did not exist. At creation the issue is open. Apply subsequent closures and reopenings through the cutoff. Track milestone changes separately and report “no recorded assignment” when none is visible. For transferred issues, use dated transfer evidence to establish which repository held the issue at the cutoff.
 
 For a duplicate closure, use the numeric ID from that closure row to find the canonical issue or PR. Include its link in a public handoff only when the target repository is public. An empty result leaves the target unknown.
 
