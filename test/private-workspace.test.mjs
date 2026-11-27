@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
+  cpSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -8,7 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, parse } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { exportBundle } from "../workspace/okf.mjs";
@@ -256,4 +257,71 @@ test("review only selected evidence, retain independent item revisions and rejec
     managerBrief(db, undefined, "2026-12-01T00:00:00Z"),
     /会議\.md|sha256/,
   );
+});
+
+test("a fresh session can recover from a closed workspace copy using its private entry point", (t) => {
+  const dir = mkdtempSync(join(tmpdir(), "agentic-resume-"));
+  t.after(() => rmSync(dir, { force: true, recursive: true }));
+  const cli = fileURLToPath(new URL("../workspace/cli.mjs", import.meta.url));
+  const original = join(dir, "work desk");
+  const restored = join(dir, "restored desk");
+  const run = (entry, desk, ...args) =>
+    spawnSync(process.execPath, [entry, desk, ...args], { encoding: "utf8" });
+  assert.equal(run(cli, original, "init").status, 0);
+  assert.equal(run(cli, original, "register", "pilot", "試行").status, 0);
+  assert.equal(run(cli, original, "apply", fileURLToPath(meeting)).status, 0);
+  cpSync(original, restored, { recursive: true });
+  const guide = readFileSync(join(restored, "AGENTS.md"), "utf8");
+  const recovered = JSON.parse(guide.match(/```json\n([^\n]+)\n```/)[1]);
+  assert.equal(recovered, cli);
+  assert.match(run(recovered, restored, "agenda").stdout, /案内文の読み合わせ/);
+  assert.match(
+    run(recovered, restored, "history", "pilot", "reader-test").stdout,
+    /review-request/,
+  );
+  writeFileSync(join(restored, "AGENTS.md"), "My hand-edited guide.");
+  assert.equal(run(cli, restored, "guide").status, 1);
+  assert.equal(
+    readFileSync(join(restored, "AGENTS.md"), "utf8"),
+    "My hand-edited guide.",
+  );
+});
+
+test("hosted Windows routes a selected Unicode file on another drive", {
+  skip:
+    process.platform !== "win32" || process.env.AGENTIC_PM_CROSS_DRIVE !== "1",
+}, (t) => {
+  const local = mkdtempSync(join(process.env.LOCALAPPDATA, "agentic-local-"));
+  const remote = mkdtempSync(join(process.env.RUNNER_TEMP, "agentic-other-"));
+  t.after(() => {
+    rmSync(local, { force: true, recursive: true });
+    rmSync(remote, { force: true, recursive: true });
+  });
+  assert.notEqual(
+    parse(local).root.toLowerCase(),
+    parse(remote).root.toLowerCase(),
+    "The hosted trial needs two drive letters.",
+  );
+  const desk = join(local, "Private desk");
+  init(desk);
+  const db = openWorkspace(desk);
+  try {
+    const vault = join(remote, "共有 ノート");
+    mkdirSync(vault);
+    const note = join(vault, "定例.md");
+    writeFileSync(note, "# 定例\n\nReading session confirmed.\n");
+    register(db, "pilot", "試行", [local, vault]);
+    const receipt = inspectSource(db, note);
+    assert.deepEqual(receipt.candidates, ["pilot"]);
+    applyEvents(db, [{ ...events[0], file: receipt.file }]);
+    assert.equal(reviewSources(db).checkedFiles, 1);
+    assert.deepEqual(reviewSources(db).attention, []);
+    assert.ok(
+      readFileSync(publishView(db, desk, "desk", "pilot"), "utf8").includes(
+        events[0].changes.title,
+      ),
+    );
+  } finally {
+    db.close();
+  }
 });
