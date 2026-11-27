@@ -21,6 +21,10 @@ mise exec node@26.13.1 -- node .agents/skills/github-project-cycle/scripts/miles
 
 Mise selects Node.js for this command. If Node.js 26 is already active, run the reporter directly with `node`. Look for the **Milestone work plan** heading, then follow an issue link and check it against [Vite’s milestone](https://github.com/vitejs/vite/milestone/36). A milestone with no open issues prints an explicit message. For your own roadmap, substitute its repository and numbers. For work without a milestone, start with the [Project query](.agents/skills/github-project-cycle/SKILL.md#generate-a-daily-plan). If the skill is already installed, follow the [update and rollback procedure](docs/agent-profiles.md#update-or-roll-back).
 
+## Make project materials
+
+Ask for a one-off deliverable or save a brief for the team's recurring work. The standalone [project-materials skill](.agents/skills/project-materials/SKILL.md) uses the same project records for different audiences and formats. For example, refresh a manager's Markdown note and a workbook WBS while preserving the chair's comments and formulas. Follow the [installation and two-meeting walkthrough](docs/project-materials.md).
+
 ## Getting started
 
 Install [mise](https://mise.jdx.dev/getting-started.html) and clone this repository.
