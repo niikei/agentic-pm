@@ -14,11 +14,14 @@ query MilestoneReport(
         projectV2(number: $project) {
           id
           public
-          priority: field(name: "Priority") @include(if: $plan) {
-            ... on ProjectV2SingleSelectField {
-              options {
-                id
+          fields(first: 50) @include(if: $plan) {
+            nodes {
+              ... on ProjectV2SingleSelectField {
                 name
+                options {
+                  id
+                  name
+                }
               }
             }
           }

@@ -135,10 +135,15 @@ test("distinguishes empty milestones, unset status and truncated memberships", (
 function planningPage(numbers) {
   const result = page(numbers);
   const repo = result.data.repository;
-  repo.owner.projectV2.priority = {
-    options: [
-      { id: "urgent", name: "First" },
-      { id: "routine", name: "Later" },
+  repo.owner.projectV2.fields = {
+    nodes: [
+      {
+        name: "Priority",
+        options: [
+          { id: "urgent", name: "First" },
+          { id: "routine", name: "Later" },
+        ],
+      },
     ],
   };
   for (const issue of repo.milestone.issues.nodes) {
@@ -171,9 +176,33 @@ test("ranks actionable issues by native option order with stable ties and unrank
   assert.match(plan, /Verify &#64;team &#124; safely/);
   assert.doesNotMatch(plan, /wrong|ignore this section/);
   assert.match(plan, /Unranked/);
-  input.data.repository.owner.projectV2.priority.options.reverse();
+  input.data.repository.owner.projectV2.fields.nodes[0].options.reverse();
   const reprioritized = renderReport([input], { plan: true });
   assert.ok(reprioritized.indexOf("[#5]") < reprioritized.indexOf("[#7]"));
+});
+
+test("plans unranked issues without borrowing priority or readiness from a custom status", () => {
+  const input = planningPage([8, 4, 6]);
+  const repo = input.data.repository;
+  repo.owner.projectV2.fields.nodes = [
+    {},
+    { name: "Status", options: [{ id: "later", name: "Later" }] },
+  ];
+  const deferred = repo.milestone.issues.nodes[2];
+  deferred.body = "";
+  deferred.projectItems.nodes[0].fieldValueByName = { name: "Later | @team" };
+  const plan = renderReport([input], { plan: true });
+  assert.match(plan, /no single-select Priority field/);
+  assert.deepEqual(
+    [...plan.matchAll(/\*\*Unranked\*\* · \[#(\d+)\]/g)].map(
+      (match) => match[1],
+    ),
+    ["4", "8", "6"],
+  );
+  assert.match(
+    plan,
+    /### Needs triage\n\n[^\n]*\[#6\][^\n]*\*\*Later &#124; &#64;team\*\*/,
+  );
 });
 
 test("keeps blockers, parents, PRs and incomplete inputs out of the implementation queue", () => {
