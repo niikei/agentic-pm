@@ -131,3 +131,93 @@ test("distinguishes empty milestones, unset status and truncated memberships", (
   assert.match(report, /Unknown \(more memberships\)/);
   assert.match(report, /Unset/);
 });
+
+function planningPage(numbers) {
+  const result = page(numbers);
+  const repo = result.data.repository;
+  repo.owner.projectV2.priority = {
+    options: [
+      { id: "urgent", name: "First" },
+      { id: "routine", name: "Later" },
+    ],
+  };
+  for (const issue of repo.milestone.issues.nodes) {
+    issue.body = "### Acceptance criteria\n\n- Verify issue " + issue.number;
+    issue.blockedBy = { nodes: [] };
+    issue.projectItems.nodes.push({
+      project: { id: "board" },
+      fieldValueByName: { name: "Todo" },
+    });
+  }
+  return result;
+}
+
+test("ranks actionable issues by native option order with stable ties and unranked last", () => {
+  const input = planningPage([9, 7, 5, 1, 10]);
+  const issues = input.data.repository.milestone.issues.nodes;
+  for (const issue of issues.slice(0, 2))
+    issue.projectItems.nodes[0].priority = { optionId: "urgent" };
+  issues[2].projectItems.nodes[0].priority = { optionId: "routine" };
+  issues[0].body =
+    "### Outcome\n\n```md\n## Acceptance criteria\nwrong\n```\n### Acceptance criteria\n- Verify @team | safely\n### Evidence\nignore this section";
+  issues[0].projectItems.nodes[0].fieldValueByName.name = "In Progress";
+  issues[4].state = "CLOSED";
+  const plan = renderReport([input], { plan: true });
+  assert.deepEqual(
+    [...plan.matchAll(/\[#(\d+)\]/g)].map((match) => Number(match[1])),
+    [7, 9, 5, 1],
+  );
+  assert.match(plan, /Continue the active implementation/);
+  assert.match(plan, /Verify &#64;team &#124; safely/);
+  assert.doesNotMatch(plan, /wrong|ignore this section/);
+  assert.match(plan, /Unranked/);
+  input.data.repository.owner.projectV2.priority.options.reverse();
+  const reprioritized = renderReport([input], { plan: true });
+  assert.ok(reprioritized.indexOf("[#5]") < reprioritized.indexOf("[#7]"));
+});
+
+test("keeps blockers, parents, PRs and incomplete inputs out of the implementation queue", () => {
+  const input = planningPage([1, 2, 3, 4, 5, 6]);
+  const [blocked, parent, review, offboard, unknown, unspecified] =
+    input.data.repository.milestone.issues.nodes;
+  blocked.issueDependenciesSummary.blockedBy = 2;
+  blocked.blockedBy.nodes.push(
+    {
+      number: 91,
+      url: "https://example.org/issues/91",
+      state: "OPEN",
+      repository: { id: "repo" },
+    },
+    {
+      number: 92,
+      url: "https://example.org/private/92",
+      state: "OPEN",
+      repository: { id: "elsewhere" },
+    },
+  );
+  parent.subIssuesSummary = { completed: 1, total: 1 };
+  review.closedByPullRequestsReferences.nodes.push({
+    number: 17,
+    url: "https://example.org/pull/17",
+    state: "OPEN",
+    isDraft: true,
+    repository: { id: "repo" },
+  });
+  offboard.projectItems.nodes = [];
+  unknown.closedByPullRequestsReferences.pageInfo.hasNextPage = true;
+  unspecified.body = "### Acceptance criteria\n_No response_";
+  const plan = renderReport([input], { plan: true });
+  assert.doesNotMatch(plan, /Implementation queue|private\/92/);
+  assert.match(plan, /Resolve 2 open prerequisites.*#91.*Issue relationships/);
+  assert.match(plan, /Verify the completed children/);
+  assert.match(plan, /Continue the draft implementation/);
+  assert.match(plan, /Add the issue to the Project/);
+  assert.match(plan, /Inspect the remaining linked PRs/);
+  assert.match(plan, /confirm its acceptance criteria/);
+  assert.match(
+    renderReport([planningPage([])], { plan: true }),
+    /No open milestone issues/,
+  );
+  input.data.repository.owner.projectV2.public = false;
+  assert.throws(() => renderReport([input], { plan: true }), /public Project/);
+});

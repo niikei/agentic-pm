@@ -1,35 +1,25 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-
-// Keep user-authored text literal inside a Markdown table cell or link label.
-function markdownText(value) {
-  return value.replace(
-    /[^\p{L}\p{N} -]/gu,
-    (char) => `&#${char.codePointAt(0)};`,
-  );
-}
+import {
+  issueLink,
+  markdownText,
+  openPullRequests,
+  projectItem,
+  pullRequestLinks,
+} from "./milestone-markdown.mjs";
+import { renderWorkPlan } from "./work-plan.mjs";
 
 function statusFor(issue, projectId) {
-  const items = issue.projectItems;
-  const item = items.nodes.find((entry) => entry.project.id === projectId);
+  const item = projectItem(issue, projectId);
   if (!item)
-    return items.pageInfo.hasNextPage
+    return issue.projectItems.pageInfo.hasNextPage
       ? "Unknown (more memberships)"
       : "Off board";
   const status = item.fieldValueByName?.name;
   return status ? markdownText(status) : "Unset";
 }
 
-function openPullRequests(issue, repositoryId) {
-  const { nodes, pageInfo } = issue.closedByPullRequestsReferences;
-  const links = nodes
-    .filter((pr) => pr.state === "OPEN" && pr.repository.id === repositoryId)
-    .map((pr) => `[#${pr.number}](${pr.url})${pr.isDraft ? " (draft)" : ""}`);
-  if (pageInfo.hasNextPage) links.push(`[See issue](${issue.url})`);
-  return links.join(", ") || "—";
-}
-
-export function renderReport(pages) {
+export function renderReport(pages, { plan = false } = {}) {
   const repo = pages[0]?.data?.repository;
   const project = repo?.owner?.projectV2;
   const scopeIsPublic =
@@ -66,6 +56,7 @@ export function renderReport(pages) {
     );
   }
 
+  if (plan) return renderWorkPlan(repo, issues);
   const closed = issues.filter((issue) => issue.state === "CLOSED").length;
   const blocked = issues.filter(
     (issue) =>
@@ -89,26 +80,25 @@ export function renderReport(pages) {
         ? "Closed (not planned)"
         : issue.state.toLowerCase();
     const { completed, total } = issue.subIssuesSummary;
-    const label = issue.title
-      ? `#${issue.number} ${markdownText(issue.title)}`
-      : `#${issue.number}`;
     lines.push(
-      `| [${label}](${issue.url}) | ${state} | ${statusFor(issue, project.id)} | ${issue.issueDependenciesSummary.blockedBy} | ${total ? `${completed}/${total}` : "—"} | ${openPullRequests(issue, repo.id)} |`,
+      `| ${issueLink(issue)} | ${state} | ${statusFor(issue, project.id)} | ${issue.issueDependenciesSummary.blockedBy} | ${total ? `${completed}/${total}` : "—"} | ${pullRequestLinks(issue, openPullRequests(issue, repo.id))} |`,
     );
   }
   return lines.join("\n");
 }
 
 if (import.meta.main) {
-  const [repository, project, milestone, ...extra] = process.argv.slice(2);
+  const [repository, project, milestone, mode, ...extra] =
+    process.argv.slice(2);
   if (
     extra.length ||
+    (mode !== undefined && mode !== "--plan") ||
     !/^[\w.-]+\/[\w.-]+$/.test(repository ?? "") ||
     !/^[1-9]\d*$/.test(project ?? "") ||
     !/^[1-9]\d*$/.test(milestone ?? "")
   ) {
     console.error(
-      "Usage: node scripts/milestone-report.mjs OWNER/REPO PROJECT_NUMBER MILESTONE_NUMBER",
+      "Usage: node scripts/milestone-report.mjs OWNER/REPO PROJECT_NUMBER MILESTONE_NUMBER [--plan]",
     );
     process.exitCode = 1;
   } else {
@@ -137,6 +127,8 @@ if (import.meta.main) {
           `project=${project}`,
           "-F",
           `milestone=${milestone}`,
+          "-F",
+          `plan=${mode === "--plan"}`,
         ],
         {
           encoding: "utf8",
@@ -144,7 +136,9 @@ if (import.meta.main) {
           stdio: ["ignore", "pipe", "inherit"],
         },
       );
-      console.log(renderReport(JSON.parse(response)));
+      console.log(
+        renderReport(JSON.parse(response), { plan: mode === "--plan" }),
+      );
     } catch (error) {
       console.error(
         error.status
