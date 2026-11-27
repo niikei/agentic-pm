@@ -9,6 +9,7 @@
     "format": "biome format --write .",
     "lint": "biome check --error-on-warnings . && markdownlint-cli2 && actionlint -shellcheck= -pyflakes= && zizmor --offline .github/workflows",
     "test": "node --test",
+    "test:public": "node --test checks/public-roadmaps.mjs",
     "check": "pnpm run lint && lychee --offline --include-fragments --hidden . && gitleaks git --redact && gitleaks git --pre-commit --staged --redact && pnpm run test",
     "check:online": "lychee --exclude-all-private --include-fragments --hidden . && pnpm audit --audit-level high"
   },

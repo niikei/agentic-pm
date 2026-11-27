@@ -75,11 +75,20 @@ function nextAction(issue, repo, item, prs, criteria, needsDecision) {
     ];
 
   if (prs.length) {
-    if (prs.some((pr) => ["ERROR", "FAILURE"].includes(headCheckState(pr))))
-      return [
-        "Pull requests",
-        "Investigate the failing checks on the linked PR.",
+    const failing = prs.find((pr) =>
+      ["ERROR", "FAILURE"].includes(headCheckState(pr)),
+    );
+    if (failing) {
+      const next = [
+        `Investigate the failing checks on [#${failing.number}](${failing.url}). Inspect required checks with \`gh pr checks ${failing.url} --required\`.`,
       ];
+      if (
+        failing.reviewDecision === "REVIEW_REQUIRED" &&
+        failing.reviewRequests?.totalCount === 0
+      )
+        next.push("Confirm who will provide the required review.");
+      return ["Pull requests", next.join(" ")];
+    }
     if (prs.some((pr) => pr.reviewDecision === "CHANGES_REQUESTED"))
       return [
         "Pull requests",
