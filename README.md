@@ -27,6 +27,8 @@ Open the [personal task desk](reports/README.md#open-a-personal-task-desk) for n
 
 Ask for a one-off deliverable or save a brief for the team's recurring work. The standalone [project-materials skill](.agents/skills/project-materials/SKILL.md) uses the same project records for different audiences and formats. For example, refresh a manager's Markdown note and a workbook WBS while preserving the chair's comments and formulas. Follow the [installation and two-meeting walkthrough](docs/project-materials.md).
 
+Use the [design defaults](DESIGN.md) when adapting a dashboard or report for another reader.
+
 ## Getting started
 
 Install [mise](https://mise.jdx.dev/getting-started.html) and clone this repository.
