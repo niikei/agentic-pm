@@ -9,6 +9,7 @@ const localDay = new Intl.DateTimeFormat("sv-SE", {
 export const stages = {
   active: "進行中",
   ready: "着手可能",
+  backlog: "未着手",
   waiting: "待機中",
   unknown: "状態未記録",
 };

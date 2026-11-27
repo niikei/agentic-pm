@@ -8,6 +8,10 @@ Start with the [development board](https://github.com/users/niikei/projects/1). 
 
 To try it, follow the [browser walkthrough](docs/lifecycle.md) or give your agent the [project-cycle skill](.agents/skills/github-project-cycle/SKILL.md). Codex is the first implementation exercised against the live Project. GitHub Copilot and Claude Code are optional integration targets. See the [agent profiles and validation evidence](docs/agent-profiles.md) and the [roadmap](docs/research/planning-and-reporting.md#prioritized-roadmap).
 
+## Open this project's work desk
+
+From a [configured checkout](#getting-started), run `mise exec -- pnpm desk:project` and open the printed HTML path. The operator desk reads this project's live board, open issues, open PRs and recent merges. Expand an issue to follow its linked PR or open a merge to see the work it delivered. For a manager, run `mise exec -- pnpm desk:project manager` to generate a standalone outcome brief from dated observations. [Refresh and evidence scope](reports/README.md#refresh-the-agentic-pm-desk).
+
 ## Try a daily plan in your own checkout
 
 Use Node.js 26 and an authenticated GitHub CLI with read access to the public Project. The v0.1.0 release ships the instructions. The following reviewed revision also includes the daily planner and its GraphQL query. Preview the instructions and inspect the [files at the pinned revision](https://github.com/niikei/agentic-pm/tree/8dde0e0de64a8ad12d0ddb098b63c45877845270/.agents/skills/github-project-cycle) before installation.
