@@ -26,7 +26,9 @@ afternoon option while the guide owner rehearses check-in. Record one question o
 guide issue. “The afternoon room is available. May we change the advertised
 time, and which accessibility contact may both documents use?”
 The sponsor decides. On return, read the reply, check the approved time and
-contact in both drafts, then publish through the usual review.
+contact in both drafts, then publish through the usual review. The schedule
+owner links the sponsor’s dated decision and the published schedule. If the
+guide is still a draft, its owner records publication as the next action.
 
 ## Generate and review the work breakdown
 
@@ -36,8 +38,8 @@ In the browser, use **Add sub-issue** on the parent for accepted work. Attach ea
 
 ## Deliver and replan
 
-1. Select an unblocked issue and move it to **In Progress**. Create a branch,
-   link the issue in the PR, and attach the check result.
+1. Select an unblocked issue and move it to **In Progress**. For repository changes,
+   create a branch, link the issue in the PR, and attach the check result.
 2. If evidence changes the sequence, record the observation, decision,
    affected issue links and condition for reconsideration on the parent.
    Change the dependency relationship only when the actual prerequisite changes.
@@ -52,8 +54,9 @@ For a routine update, open the Project, read the issue titles and Status, and
 open the relevant issue for its acceptance criteria, dependencies and latest
 decision. An issue can show **In Progress** while it waits for a person.
 For the total number of issues and pull requests, open the milestone. For
-a dated handoff, record what passed, what needs a decision and what can
-proceed in one place, then share the link.
+a dated handoff, link the evidence for each outcome. Identify the next
+action, its owner and any decision needed from an approving role. Record an
+unknown owner or approver when the issue and its evidence leave that open.
 
 ### Verify a milestone snapshot
 
