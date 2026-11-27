@@ -1,0 +1,11 @@
+{
+  "$schema": "../schemas/report-v1.json",
+  "schemaVersion": 1,
+  "title": "Weekly decision brief",
+  "language": "en",
+  "reader": "Decision maker",
+  "question": "Which open decisions need attention, and what landed during this reporting period?",
+  "format": "markdown",
+  "periodDays": 7,
+  "sections": ["decisions", "deliveries"]
+}

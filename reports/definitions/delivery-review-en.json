@@ -1,0 +1,11 @@
+{
+  "$schema": "../schemas/report-v1.json",
+  "schemaVersion": 1,
+  "title": "Delivery review",
+  "language": "en",
+  "reader": "Delivery team",
+  "question": "What landed during the past week, and which changes are still open?",
+  "format": "html",
+  "periodDays": 7,
+  "sections": ["deliveries", "changes"]
+}

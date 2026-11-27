@@ -1,0 +1,11 @@
+{
+  "$schema": "../schemas/report-v1.json",
+  "schemaVersion": 1,
+  "title": "開発の着手とレビュー",
+  "language": "ja",
+  "reader": "開発担当者",
+  "question": "開いている変更と、判断を必要としている作業はどれか。",
+  "format": "html",
+  "periodDays": 1,
+  "sections": ["changes", "decisions", "work"]
+}
