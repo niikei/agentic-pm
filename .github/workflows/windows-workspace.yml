@@ -19,3 +19,5 @@ jobs:
           package-manager-cache: false
       - run: npm exec --yes --package=pnpm@12.21.0 -- pnpm install --frozen-lockfile --ignore-scripts
       - run: node --test test/private-workspace.test.mjs
+        env:
+          AGENTIC_PM_CROSS_DRIVE: "1"

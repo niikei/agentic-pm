@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { writeGuide } from "./guide.mjs";
 import { exportBundle } from "./okf.mjs";
 import { inspectSource, locate, reviewSources } from "./sources.mjs";
 import {
@@ -14,6 +15,7 @@ import { agenda, publishView, workDesk } from "./views.mjs";
 
 const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
   init
+  guide
   register PROJECT NAME [ABSOLUTE_DIRECTORY ...]
   projects
   locate FILE
@@ -32,11 +34,14 @@ function run() {
   if (!directory || !command) throw new Error(usage);
   if (command === "init" && !args.length) {
     init(directory);
-    return "Workspace created.";
+    return writeGuide(directory);
   }
   const db = openWorkspace(directory);
   try {
     switch (command) {
+      case "guide":
+        if (!args.length) return writeGuide(directory);
+        break;
       case "register":
         if (args.length >= 2) {
           register(db, args[0], args[1], args.slice(2));

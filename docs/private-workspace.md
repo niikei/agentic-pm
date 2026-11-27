@@ -16,6 +16,10 @@ node workspace/cli.mjs $desk projects
 
 Use only directories approved for the selected AI session. Select a single note, meeting excerpt or screenshot for intake. A vault's settings, attachments and other notes can stay untouched. Registered paths and local work records belong in the private workspace. This repository's public Project tracks development of the tool.
 
+## Open a fresh AI session
+
+Open the private workspace folder in your approved agent. Initialization writes a local `AGENTS.md` with the CLI path and recovery commands. In a tool that reads this file automatically, start with “What should I work on today?” In another tool, select that file as context. For an older workspace, run `node workspace/cli.mjs $desk guide` once. The command preserves an existing guide. After moving the software checkout, update the CLI path in your private guide.
+
 ## Capture a change
 
 Tell the agent what happened. For example, “From today's pilot minutes, the reading session is confirmed for December 2. Draft the instructions first. Half a day is my estimate.” The agent reads the selected evidence in an approved environment, checks current items, and prepares an update file in the private workspace. For a pasted calendar or image, identify the event and its date or ask for the unreadable detail. The CLI accepts structured updates from an agent or a person.
