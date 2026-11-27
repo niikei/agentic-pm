@@ -20,6 +20,13 @@ const ajv = new Ajv({
   useDefaults: true,
   formats: {
     "date-time": validUtc,
+    date(value) {
+      const time = Date.parse(value);
+      return (
+        Number.isFinite(time) &&
+        new Date(time).toISOString().slice(0, 10) === value
+      );
+    },
     uri(value) {
       if (!URL.canParse(value) || /[\s\\]/u.test(value)) return false;
       const url = new URL(value);
@@ -90,6 +97,8 @@ export function validateSnapshot(snapshot) {
     }
   }
   for (const item of snapshot.items) {
+    if (item.question && !item.needsDecision)
+      throw new Error("A question requires a decision flag.");
     if (Date.parse(item.updatedAt) > Date.parse(snapshot.asOf)) {
       throw new Error("An open record was updated after the snapshot cutoff.");
     }

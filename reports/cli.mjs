@@ -6,6 +6,8 @@ import {
   selectDefinition,
   validateSnapshot,
 } from "./catalog.mjs";
+import { renderDesk } from "./desk/html.mjs";
+import { buildDesk } from "./desk/model.mjs";
 import { writeGallery } from "./gallery.mjs";
 import { buildReport } from "./model.mjs";
 import { captureGitHub } from "./sources/github.mjs";
@@ -17,6 +19,8 @@ const usage = `Usage: node reports/cli.mjs <command>
   gallery [--input SNAPSHOT.json]           Create a browsable local directory
   render ID|FILE.json [--input SNAPSHOT.json | --github OWNER/REPO]
                                             Write the selected document to stdout
+  desk [--input SNAPSHOT.json | --github OWNER/REPO] [--owner NAME]
+                                            Write a Japanese personal work desk as HTML
   capture OWNER/REPO [--days N]             Write a public GitHub snapshot to stdout
 
 The default input is the bundled synthetic rollout. Coverage defaults to seven days for capture.`;
@@ -26,6 +30,7 @@ async function main([command, ...args]) {
   if (!command || command === "--help") return console.log(usage);
   const options = {
     list: {},
+    desk: { input: string, github: string, owner: string },
     gallery: { input: string },
     render: { input: string, github: string },
     capture: { days: string },
@@ -69,6 +74,18 @@ async function main([command, ...args]) {
   }
   if (values.github !== undefined && values.input !== undefined)
     throw new Error("Choose one input source.");
+  if (command === "desk") {
+    const snapshot =
+      values.github === undefined
+        ? readJson(
+            values.input ?? new URL("./examples/desk.json", import.meta.url),
+          )
+        : await captureGitHub(values.github, 7);
+    process.stdout.write(
+      renderDesk(buildDesk(validateSnapshot(snapshot), values.owner)),
+    );
+    return;
+  }
   const definition = selectDefinition(name);
   const snapshot =
     values.github === undefined

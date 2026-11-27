@@ -26,6 +26,12 @@ test("every bundled definition validates and has a usable document in the offlin
   const dir = dirname(index);
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   const page = readFileSync(index, "utf8");
+  assert.ok(page.includes('href="./documents/task-desk.html"'));
+  assert.ok(
+    readFileSync(join(dir, "documents", "task-desk.html"), "utf8").includes(
+      "作業の見通し",
+    ),
+  );
   for (const { id, definition } of entries) {
     const format = definition.format === "html" ? "html" : "md";
     const name = `documents/${id}.${format}`;

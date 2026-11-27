@@ -7,6 +7,8 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { renderDesk } from "./desk/html.mjs";
+import { buildDesk } from "./desk/model.mjs";
 import { buildReport } from "./model.mjs";
 import { escapeHtml, renderHtml } from "./writers/html.mjs";
 import { writerFor } from "./writers/index.mjs";
@@ -21,6 +23,10 @@ export function writeGallery(entries, snapshot) {
   copyFileSync(
     new URL("./schemas/report-v1.json", import.meta.url),
     join(folder, "schemas/report-v1.json"),
+  );
+  writeFileSync(
+    join(folder, "documents", "task-desk.html"),
+    renderDesk(buildDesk(snapshot)),
   );
   const cards = entries.map(({ id, definition }) => {
     const report = buildReport(definition, snapshot);
@@ -47,7 +53,7 @@ export function writeGallery(entries, snapshot) {
   const page = `<!doctype html>
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'">
-<title>Report catalog · agentic-pm</title><style>${styles}</style><main><header><h1>Report catalog</h1><p>${escapeHtml(snapshot.project)} · <time>${escapeHtml(snapshot.asOf)}</time></p></header><div class="grid">${cards.join("\n")}</div></main></html>\n`;
+<title>Report catalog · agentic-pm</title><style>${styles}</style><main><header><h1>Report catalog</h1><p>${escapeHtml(snapshot.project)} · <time>${escapeHtml(snapshot.asOf)}</time></p><p><a href="./documents/task-desk.html">Open the personal task desk (Japanese)</a></p></header><div class="grid">${cards.join("\n")}</div></main></html>\n`;
   const index = join(folder, "index.html");
   writeFileSync(index, page);
   return index;
