@@ -36,8 +36,10 @@ gh api --paginate 'repos/{owner}/{repo}/milestones?state=open' --jq '.[] | [.num
 For work without a milestone, start in the selected Project. Replace the placeholders in the native filter and follow an issue to verify its assignees, recorded status and prerequisites. Preserve team decisions such as Later or Backlog until the team revises them.
 
 ```sh
-gh project item-list PROJECT_NUMBER --owner OWNER --limit 100 --query 'repo:OWNER/REPO is:issue is:open no:milestone'
+gh project item-list PROJECT_NUMBER --owner OWNER --limit 100 --query 'repo:OWNER/REPO is:issue is:open no:milestone' --format json --jq '.items[] | [.content.url, .title, (.status // "Unset")] | @tsv'
 ```
+
+For a selected issue, inspect its assignment, closing PR links, body and recent discussion. A comment can mention work that has no formal closing link. Open a relevant PR to confirm its current draft, review and check status before proposing duplicate work. Treat an unset board status as a triage question. Identify the observable acceptance example or ask what would demonstrate completion.
 
 For milestone work, with Node.js 26 and an authenticated GitHub CLI that can read the public Project, supply the repository and both numbers to the bundled reporter. It reads GitHub and prints Markdown.
 
@@ -46,3 +48,13 @@ node .agents/skills/github-project-cycle/scripts/milestone-report.mjs OWNER/REPO
 ```
 
 Follow the issue and PR links for the current assignees, acceptance criteria and reviewers. When an issue has the `needs decision` label, read its question and identify who can authorize the next step. Record the decision before resuming that work. Omit `--plan` for milestone totals.
+
+## Recover a decision at a past date
+
+For a historical handoff, set a UTC cutoff first. Use dated events to establish issue state and milestone membership. Replace the placeholders in this read-only command and use a timestamp in GitHub's UTC format.
+
+```sh
+gh api --paginate 'repos/OWNER/REPO/issues/NUMBER/timeline?per_page=100' --jq '.[] | select(.created_at != null and .created_at <= "YYYY-MM-DDTHH:MM:SSZ") | select(.event == "milestoned" or .event == "demilestoned" or .event == "closed" or .event == "reopened") | [.created_at, .id, .event, (.milestone.title // ""), (.state_reason // ""), (.commit_id // "")] | @tsv'
+```
+
+When using an event as the cutoff, stop at its ID in timeline order. Carry forward the last observed transition. A closure reason supports the recorded disposition. Verifying implementation or shipment requires contemporaneous PR, test or release evidence. Leave ownership and approval unknown when the available history does not establish them. The milestone reporter shows current GitHub state.

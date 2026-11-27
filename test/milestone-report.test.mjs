@@ -451,3 +451,30 @@ test("replays milestone membership and closure for Vite 5.0 issue 14404", () => 
   assert.doesNotMatch(plan(), /14404/);
   assert.match(renderReport([input]), /\*\*Open\*\* 0 · \*\*Closed\*\* 1/);
 });
+
+test("preserves the closure evidence available at each Vite 5.0 handoff", () => {
+  // Only the state cell is scored. Other fixture fields are synthetic scaffolding.
+  for (const [number, reason, expected] of [
+    [13309, null, "Closed (reason unreported)"],
+    [13957, "NOT_PLANNED", "Closed (not planned)"],
+    [11552, null, "Closed (reason unreported)"],
+  ]) {
+    const input = page([number]);
+    const [issue] = input.data.repository.milestone.issues.nodes;
+    assert.ok(renderReport([input]).includes(`issues/${number}) | open |`));
+    issue.state = "CLOSED";
+    issue.stateReason = reason;
+    assert.ok(
+      renderReport([input]).includes(`issues/${number}) | ${expected} |`),
+    );
+  }
+  const input = page([1]);
+  const [issue] = input.data.repository.milestone.issues.nodes;
+  issue.state = "CLOSED";
+  for (const reason of ["COMPLETED", "DUPLICATE"]) {
+    issue.stateReason = reason;
+    assert.ok(
+      renderReport([input]).includes(`Closed (${reason.toLowerCase()})`),
+    );
+  }
+});
