@@ -1,6 +1,12 @@
 name: Windows work desk
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      obsidian:
+        description: Open synthetic notes in the signed Obsidian desktop client
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -21,3 +27,5 @@ jobs:
       - run: node --test test/private-workspace.test.mjs
         env:
           AGENTIC_PM_CROSS_DRIVE: "1"
+      - if: inputs.obsidian
+        run: ./checks/obsidian-windows.ps1
