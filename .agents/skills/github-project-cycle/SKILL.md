@@ -23,6 +23,14 @@ gh pr view PR --repo OWNER/REPO --json url,state,isDraft,headRefOid,statusCheckR
 
 Read the issue body and latest decision before choosing work. A parent groups outcomes. An open blocking issue constrains their order. Check the linked PR's own state and checks to see what is ready for review. For a cross-repository PR, use its full URL and confirm its visibility before sharing it. If a field or check is unavailable, record that limit in the handoff.
 
+For a dependency handoff, read every visible prerequisite and its state. A closed prerequisite stays in the relationship history. Count only open rows as current blockers. An issue can have zero open blockers and still have recorded prerequisites.
+
+```sh
+gh api --paginate 'repos/OWNER/REPO/issues/NUMBER/dependencies/blocked_by?per_page=100' --jq '.[] | [.html_url, .state] | @tsv'
+```
+
+`gh issue view --json blockedBy` returns a connection with `nodes` and `totalCount`. If the node count is smaller, use the paginated command above. Confirm visibility before sharing links to prerequisites in another repository.
+
 ## Generate a daily plan
 
 From the adopting checkout, identify the repository and its open milestones. Replace `OWNER` with the repository owner to list their public Projects. Choose the Project and milestone for the work you intend to plan. A repository can have several milestones and an issue can be off the board.
