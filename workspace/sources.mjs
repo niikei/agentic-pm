@@ -9,7 +9,7 @@ import {
 } from "node:fs";
 import { isAbsolute, relative, sep } from "node:path";
 
-function contains(root, file) {
+export function contains(root, file) {
   const path = relative(root, file);
   return (
     path === "" ||
@@ -52,9 +52,11 @@ function digest(file) {
   }
 }
 
-export function inspectSource(db, file, project) {
+export function inspectSource(db, file, project, scope) {
   if (!isAbsolute(file)) throw new Error("Select an absolute file path.");
   const path = realpathSync(file);
+  if (scope && (!contains(scope, path) || path !== file))
+    throw new Error("Source moved outside the scan or became a link.");
   const roots = locate(db, path);
   const shared = roots.includes("inbox");
   const candidates = roots.filter((id) => id !== "inbox");

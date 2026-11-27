@@ -12,7 +12,7 @@ To try it, follow the [browser walkthrough](docs/lifecycle.md) or give your agen
 
 From a [configured checkout](#getting-started), run `mise exec -- pnpm desk:project` and open the printed HTML path. The operator desk reads this project's live board, open issues, open PRs and recent merges. Expand an issue to follow its linked PR or open a merge to see the work it delivered. For a manager, run `mise exec -- pnpm desk:project manager` to generate a standalone outcome brief from dated observations. [Refresh and evidence scope](reports/README.md#refresh-the-agentic-pm-desk).
 
-For work spread across local repositories, ordinary folders or Obsidian vaults, use the [private work desk](docs/private-workspace.md). It accepts selected evidence and can export a project as an Open Knowledge Format bundle.
+For work spread across local repositories, ordinary folders or Obsidian vaults, use the [private work desk](docs/private-workspace.md). Tell the agent a work update or ask it to organize a folder of existing notes. It keeps the originals, refreshes the affected Open Knowledge Format notes, and answers from the same records when you need a next action or a manager brief.
 
 ## Try a daily plan in your own checkout
 

@@ -11,7 +11,7 @@ import { history, items, projects, transaction } from "./store.mjs";
 export function workDesk(db, project, asOf) {
   const names = new Map(projects(db).map((entry) => [entry.id, entry.name]));
   const records = items(db, project).filter(
-    (record) => record.status !== "done",
+    (record) => record.status !== "done" && record.status !== "reference",
   );
   const tasks = records.map((record) => {
     const target = `record-${record.project}_${record.item}`;

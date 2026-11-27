@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { writeGuide } from "./guide.mjs";
+import { capture, publishCaptured, scanNotes } from "./intake.mjs";
 import { exportBundle } from "./okf.mjs";
 import { inspectSource, locate, reviewSources } from "./sources.mjs";
 import {
@@ -24,6 +25,8 @@ const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
   locate FILE
   inspect ABSOLUTE_FILE
   review [PROJECT]
+  scan ABSOLUTE_NOTES_DIRECTORY
+  capture [BATCH_FILE]
   apply UPDATE_FILE
   items [PROJECT]
   history PROJECT ITEM
@@ -70,6 +73,21 @@ function run() {
         break;
       case "locate":
         if (args.length === 1) return locate(db, args[0]);
+        break;
+      case "scan":
+        if (args.length === 1) return scanNotes(db, directory, args[0]);
+        break;
+      case "capture":
+        if (args.length <= 1) {
+          const batch = args.length
+            ? JSON.parse(readFileSync(args[0], "utf8").replace(/^\uFEFF/, ""))
+            : undefined;
+          const result = args.length
+            ? capture(db, directory, batch)
+            : publishCaptured(db, directory);
+          if (result.problems.length) process.exitCode = 2;
+          return result;
+        }
         break;
       case "apply":
         if (args.length === 1) {

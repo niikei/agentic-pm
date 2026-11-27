@@ -6,7 +6,7 @@ import { sourceUrl } from "../reports/writers/shared.mjs";
 import { forecastLabel, labels, meetingTime } from "./fields.mjs";
 import { fieldSources, history, items } from "./store.mjs";
 
-const status = { ...stages, done: "完了" };
+const status = { ...stages, done: "完了", reference: "参考情報" };
 
 function fieldValue(item, key) {
   if (key === "status") return status[item.status];
@@ -24,7 +24,7 @@ function concept(item, events) {
   );
   const lines = [
     "---",
-    "type: Work Item",
+    item.status === "reference" ? "type: Reference Note" : "type: Work Item",
     `title: ${JSON.stringify(item.title)}`,
     `x-agentic-pm-project: ${JSON.stringify(item.project)}`,
     `x-agentic-pm-revision: ${item.revision}`,
@@ -90,6 +90,10 @@ export function exportBundle(db, destination, project) {
     throw error;
   }
   mkdirSync(destination, { mode: 0o700 });
+  writeFileSync(join(destination, ".agentic-pm-snapshot"), "OKF snapshot\n", {
+    flag: "wx",
+    mode: 0o600,
+  });
   for (const page of pages)
     writeFileSync(join(destination, page.name), page.body, {
       flag: "wx",
