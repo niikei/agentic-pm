@@ -22,7 +22,7 @@ export function workDesk(db, project, asOf) {
       changes: Object.keys(event.changes).map((key) => labels[key] ?? "件名"),
     }));
     return {
-      id: `${names.get(record.project)} · ${record.item}`,
+      id: `${names.get(record.project)} · ${record.project}/${record.item}`,
       title: record.title,
       target,
       url: `#${target}`,
@@ -59,7 +59,7 @@ export function workDesk(db, project, asOf) {
   return desk;
 }
 
-export function agenda(desk) {
+export function agenda(desk, all = false) {
   const lines = [
     `# ${md(desk.project)}の仕事メモ`,
     "",
@@ -68,13 +68,26 @@ export function agenda(desk) {
   ];
   const describe = (task, value) =>
     `- **${md(task.title)}** （${md(task.id)}） · ${md(value)}`;
-  const section = (title, rows, empty) =>
-    lines.push(`## ${title}`, "", ...(rows.length ? rows : [empty]), "");
+  let shortened = false;
+  function section(title, rows, empty) {
+    const visible = all ? rows : rows.slice(0, 3);
+    lines.push(`## ${title}`, "", ...(rows.length ? visible : [empty]), "");
+    if (rows.length > visible.length) {
+      shortened = true;
+      lines.push(`ほか${rows.length - visible.length}件`, "");
+    }
+  }
   section(
     "次にやること",
     desk.next ? [describe(desk.next, desk.next.nextAction)] : [],
     "着手できる次の行動は未記録です。",
   );
+  if (desk.nextReason) lines.push(desk.nextReason, "");
+  if (all && desk.actionable.length > 1)
+    section(
+      "ほかに着手できる作業",
+      desk.actionable.slice(1).map((t) => describe(t, t.nextAction)),
+    );
   section(
     "忘れそうな確認",
     desk.tasks
@@ -121,6 +134,11 @@ export function agenda(desk) {
       .map((t) => describe(t, t.hypothesis)),
     "根拠をたどれる仮説は未記録です。",
   );
+  if (shortened)
+    lines.push(
+      "全件は `agenda --all`、案件別は `agenda PROJECT` で確認できます。",
+      "",
+    );
   return lines.join("\n");
 }
 

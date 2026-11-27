@@ -486,3 +486,42 @@ test("refresh a bound OKF project in place, preserve material outside generated 
   mkdirSync(ordinary);
   assert.throws(() => refreshBundle(db, ordinary, "pilot"), /EEXIST/);
 });
+
+test("a portfolio check-in shows a bounded sample, explains ties and retains a complete agenda", (t) => {
+  const { db } = fixture(t);
+  register(db, "pilot", "試行", []);
+  const entries = Array.from({ length: 8 }, (_, i) => ({
+    ...events[0],
+    event: `record-${i}`,
+    item: `task-${i}`,
+    changes: {
+      title: `Task ${i}`,
+      status: "ready",
+      nextAction: "Start review",
+      estimate: `Estimate ${i}`,
+    },
+  }));
+  applyEvents(db, entries);
+  const desk = workDesk(db, undefined, "2026-11-28T00:00:00Z");
+  const short = agenda(desk),
+    full = agenda(desk, true);
+  assert.match(short, /同じ期限条件で着手できる作業が8件/);
+  assert.match(short, /ほか5件/);
+  assert.doesNotMatch(short, /Estimate 7/);
+  assert.match(short, /agenda --all/);
+  assert.match(full, /Estimate 7/);
+  assert.match(full, /ほかに着手できる作業/);
+  assert.doesNotMatch(full, /ほか5件/);
+  applyEvents(db, [
+    {
+      ...entries[7],
+      event: "commit-date",
+      base: 1,
+      changes: { dueDate: "2026-11-30" },
+    },
+  ]);
+  assert.match(
+    agenda(workDesk(db, undefined, "2026-11-28T00:00:00Z")),
+    /期限が最も早い/,
+  );
+});
