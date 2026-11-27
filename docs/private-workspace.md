@@ -67,6 +67,24 @@ At the next check-in, `review` compares only cited files and names the items aff
 
 An existing OKF concept also works as a selected Markdown source. Read its body and relevant provenance, then preserve its original properties. Obsidian's [Properties documentation](https://obsidian.md/help/properties) describes Source mode for nested metadata such as the OKF source list.
 
+## Speak a work update or organize existing notes
+
+Open the private desk as the agent workspace. If an older desk already has customized instructions, add one line to its private `AGENTS.md`: “Use `scan` for selected note folders and `capture` for work conversations, using the current checkout's private-workspace guide.” Tell the agent, for example, “The draft went out. Printing is probably 80 copies. Order after confirmation.” Later, “They confirmed 60 copies.” Ask “What should I do next?” or “Give me two sentences for my manager.” The agent interprets the conversation, updates the same item and publishes its OKF notes. Input can come from typing or the host's dictation. The CLI accepts the agent's interpretation as data.
+
+For old notes, select a specific registered directory. For example, “Organize the Markdown and text under my daily notes. Keep reference facts, collect next steps and show me what you could not place.” The agent inventories the directory with `scan`, reads the pending notes and submits small batches. Keep a memorable fact without a task using `status: "reference"` and `summary`. Tag a tentative date as a forecast. Give reports only verified wording. A changed file can withdraw an earlier claim: read its earlier item history before reconciling. If a date is missing, distinguish the date of intake from the unknown date of the underlying claim.
+
+```powershell
+node workspace/cli.mjs $desk scan "C:\Notes\Daily"
+node workspace/cli.mjs $desk capture "$desk\batch.json"
+node workspace/cli.mjs $desk bundles
+```
+
+A capture batch has two arrays: `events` uses the existing update shape, and `reviewed` contains the exact `file` receipts of notes the agent fully processed. A conversation uses an empty `reviewed` array. An irrelevant or empty note can have a receipt and zero events. The CLI verifies the fingerprints and commits events and receipts together. A second scan fingerprints eligible files again and returns only new or changed content for the agent to interpret. It lists missing or inaccessible sources separately. A missing original does not delete its project history.
+
+The scan includes regular `.md`, `.markdown` and `.txt` files at any depth. It skips hidden entries, linked directories and files, dependencies, private desks and marked generated bundles. Office documents and images can still be selected individually. In older snapshots with their original generated index, the scan recognizes the generated page names and can still discover adjacent personal notes. Keep any heavily modified snapshot outside the selected input folder. Originals stay in place. The agent can process one mixed note into several projects and combine repeated observations into one work item.
+
+Capture refreshes the affected projects' recurring destinations listed by `bundles`. A project without a binding gets a private `okf-PROJECT` folder beside its database. To choose a vault destination before the first capture, bind a new project folder using `okf-refresh DIRECTORY PROJECT`. A saved update with a publication problem returns exit status 2 and lists the affected output. Resolve the conflict, then run `capture` without arguments to rebuild the desk and retry pending bundles. The existing `apply` command remains available for desk-only intake.
+
 ## Start the day or prepare a meeting
 
 If the view cannot be written after intake, the CLI returns status 2 and lists the saved revisions. Reopen the record or resolve the output problem and run `desk` to refresh it.

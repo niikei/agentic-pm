@@ -16,6 +16,7 @@ import { join, parse } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { capture, publishCaptured, scanNotes } from "../workspace/intake.mjs";
 import { exportBundle } from "../workspace/okf.mjs";
 import { inspectSource, locate, reviewSources } from "../workspace/sources.mjs";
 import {
@@ -760,4 +761,136 @@ test("a sourced proposal and agent forecast remain distinct from effort and a co
   const final = workDesk(db, "pilot", at);
   assert.equal(final.undated, 0);
   assert.doesNotMatch(agenda(final), /仮の見通し/);
+});
+
+test("a scoped scan records completed readings atomically, including notes without tasks", (t) => {
+  const { desk, dir, db } = fixture(t);
+  const notes = join(dir, "日報"),
+    inner = join(notes, "2026");
+  mkdirSync(inner, { recursive: true });
+  register(db, "pilot", "Pilot", [notes]);
+  const source = join(inner, "日報.MD"),
+    empty = join(notes, "empty.txt"),
+    fact = join(notes, "keys.markdown");
+  writeFileSync(source, "Initial draft. Room B has the key.");
+  writeFileSync(empty, "");
+  writeFileSync(fact, "See the note about the key.");
+  writeFileSync(join(notes, "image.png"), "unused");
+  mkdirSync(join(notes, ".obsidian"));
+  writeFileSync(join(notes, ".obsidian", "hidden.md"), "private");
+  const bound = join(notes, "Linked");
+  refreshBundle(db, bound, "pilot");
+  const snapshot = join(notes, "Snapshot");
+  exportBundle(db, snapshot, "pilot");
+  const scan = () => scanNotes(db, desk, notes);
+  const queue = scan().pending;
+  assert.equal(queue.length, 3);
+  const reviewed = queue.map((entry) => entry.file);
+  const file = reviewed.find((entry) => entry.path.endsWith("日報.MD"));
+  const reference = {
+    ...events[0],
+    event: "room-key",
+    item: "key",
+    file,
+    changes: {
+      title: "Room key",
+      status: "reference",
+      summary: "Get the key from room B.",
+    },
+  };
+  const entry = { ...events[0], file };
+  assert.throws(
+    () =>
+      capture(db, desk, {
+        events: [reference, { ...entry, base: 12 }],
+        reviewed,
+      }),
+    /revision/,
+  );
+  assert.equal(scan().pending.length, 3);
+  assert.equal(items(db).length, 0);
+  const input = { events: [entry, reference], reviewed };
+  const result = capture(db, desk, input);
+  assert.deepEqual(result.problems, []);
+  assert.match(
+    readFileSync(join(bound, "p-pilot_i-key.md"), "utf8"),
+    /type: Reference Note[\s\S]*Get the key from room B/,
+  );
+  assert.equal(workDesk(db, "pilot", new Date().toISOString()).tasks.length, 1);
+  assert.ok(capture(db, desk, input).updates.every((update) => update.replay));
+  assert.deepEqual(scan(), {
+    pending: [],
+    unchanged: 3,
+    missing: [],
+    unavailable: [],
+  });
+  writeFileSync(source, "The key moved.");
+  rmSync(empty);
+  const next = scan();
+  assert.deepEqual(
+    next.pending.map((entry) => entry.status),
+    ["changed"],
+  );
+  assert.equal(next.missing.length, 1);
+  assert.ok(next.missing[0].endsWith("empty.txt"));
+  assert.throws(
+    () => capture(db, desk, { events: [], reviewed: [file] }),
+    /changed/,
+  );
+  assert.equal(scan().pending.length, 1);
+  assert.throws(() => scanNotes(db, desk, bound), /generated/);
+  assert.throws(() => scanNotes(db, desk, dir), /registered/);
+  assert.equal(readFileSync(fact, "utf8"), "See the note about the key.");
+});
+
+test("conversational capture updates a stable note and resumes unfinished output after restart", (t) => {
+  const { dir, desk, db } = fixture(t);
+  register(db, "pilot", "Pilot", []);
+  const event = events[0],
+    batch = { events: [event], reviewed: [] };
+  const page = join(desk, "okf-pilot", "p-pilot_i-reader-test.md");
+  assert.equal(capture(db, desk, batch).problems.length, 0);
+  const original = readFileSync(page, "utf8");
+  writeFileSync(page, original.replace(event.changes.title, "Private edit"));
+  const correction = {
+    ...event,
+    event: "corrected",
+    base: 1,
+    changes: { managerUpdate: "Confirmed 60 copies." },
+  };
+  const result = capture(db, desk, { events: [correction], reviewed: [] });
+  assert.equal(result.problems.length, 1);
+  assert.equal(result.updates[0].revision, 2);
+  assert.match(readFileSync(page, "utf8"), /Private edit/);
+  const copy = join(dir, "Reopened");
+  cpSync(desk, copy, { recursive: true });
+  const restored = openWorkspace(copy);
+  try {
+    const local = join(copy, "okf-pilot", "p-pilot_i-reader-test.md");
+    writeFileSync(local, `${original}\nMy handwritten appendix.\n`);
+    assert.deepEqual(publishCaptured(restored, copy).problems, []);
+    const newBody = readFileSync(local, "utf8");
+    assert.match(newBody, /Confirmed 60 copies/);
+    assert.match(newBody, /My handwritten appendix/);
+    assert.match(readFileSync(page, "utf8"), /Private edit/);
+    assert.deepEqual(publishCaptured(restored, copy).publications, []);
+    assert.equal(history(restored, "pilot", event.item).length, 2);
+  } finally {
+    restored.close();
+  }
+});
+
+test("scanning a legacy snapshot skips its generated pages and keeps adjacent personal notes", (t) => {
+  const { dir, desk, db } = fixture(t);
+  register(db, "pilot", "Pilot", [dir]);
+  applyEvents(db, [events[0]]);
+  const folder = join(dir, "Older export");
+  exportBundle(db, folder, "pilot");
+  rmSync(join(folder, ".agentic-pm-snapshot"));
+  writeFileSync(join(folder, "Personal.md"), "My notes");
+  const result = scanNotes(db, desk, folder);
+  assert.deepEqual(
+    result.pending.map((row) => row.file.path.split(/[\\/]/).at(-1)),
+    ["Personal.md"],
+  );
 });

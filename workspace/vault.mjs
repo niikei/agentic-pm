@@ -90,6 +90,15 @@ function refreshPage(target, baseline, proposed) {
   return "written";
 }
 
+function workspaceDirectory(db) {
+  return dirname(
+    db
+      .prepare("PRAGMA database_list")
+      .all()
+      .find((row) => row.name === "main").file,
+  );
+}
+
 export function bundles(db) {
   if (
     !db
@@ -99,9 +108,14 @@ export function bundles(db) {
       .get()
   )
     return [];
+  const directory = workspaceDirectory(db);
   return db
     .prepare("SELECT project,path FROM vaults ORDER BY project,path")
-    .all();
+    .all()
+    .map(({ project, path }) => ({
+      project,
+      path: resolve(directory, path),
+    }));
 }
 
 const marker = ".agentic-pm-bundle";
@@ -118,12 +132,12 @@ function verifyDestination(target, token) {
     );
 }
 
-function recognizeLegacyPages(db, target) {
+function recognizeLegacyPages(db, key, target) {
   const known = db
     .prepare(
       "SELECT name,body FROM vault_pages WHERE path=? AND name!='index.md'",
     )
-    .all(target);
+    .all(key);
   return known.some(({ name, body }) => {
     const file = join(target, name);
     return (
@@ -143,18 +157,25 @@ export function refreshBundle(db, directory, project) {
     CREATE TABLE IF NOT EXISTS vault_ids(path TEXT PRIMARY KEY REFERENCES vaults(path),token TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS vault_pages(path TEXT NOT NULL REFERENCES vaults(path),name TEXT NOT NULL,body TEXT NOT NULL,PRIMARY KEY(path,name));
   `);
+  // Store the built-in destination relative to the database so restored copies publish locally.
+  const localName = `okf-${project}`;
+  const key =
+    target === join(workspaceDirectory(db), localName) &&
+    !db.prepare("SELECT 1 FROM vaults WHERE path=?").get(target)
+      ? localName
+      : target;
   const token = transaction(db, () => {
     const binding = db
       .prepare("SELECT project FROM vaults WHERE path=?")
-      .get(target);
+      .get(key);
     if (binding) {
       if (binding.project !== project || !lstatSync(target).isDirectory())
         throw new Error("The bound folder or its project changed.");
       const saved = db
         .prepare("SELECT token FROM vault_ids WHERE path=?")
-        .get(target);
+        .get(key);
       if (saved) return saved.token;
-      if (!recognizeLegacyPages(db, target))
+      if (!recognizeLegacyPages(db, key, target))
         throw new Error(
           "Original generated notes could not be identified in this older bundle. Choose a new dedicated folder.",
         );
@@ -162,11 +183,11 @@ export function refreshBundle(db, directory, project) {
       if (!db.prepare("SELECT 1 FROM projects WHERE id=?").get(project))
         throw new Error("Unknown project.");
       mkdirSync(target, { mode: 0o700 });
-      db.prepare("INSERT INTO vaults VALUES (?,?)").run(target, project);
+      db.prepare("INSERT INTO vaults VALUES (?,?)").run(key, project);
     }
     const value = randomUUID();
     writeFileSync(join(target, marker), value, { flag: "wx", mode: 0o600 });
-    db.prepare("INSERT INTO vault_ids VALUES (?,?)").run(target, value);
+    db.prepare("INSERT INTO vault_ids VALUES (?,?)").run(key, value);
     return value;
   });
   return transaction(db, () => {
@@ -182,11 +203,11 @@ export function refreshBundle(db, directory, project) {
     for (const { name, body } of bundlePages(db, project)) {
       // Keep the index coherent if a concept needs the operator's attention.
       if (name === "index.md" && conflicts.length) continue;
-      const previous = baseline.get(target, name)?.body;
+      const previous = baseline.get(key, name)?.body;
       const result = refreshPage(join(target, name), previous, body);
       if (result === "written") written.push(name);
       if (["written", "current"].includes(result)) {
-        if (previous !== body) remember.run(target, name, body);
+        if (previous !== body) remember.run(key, name, body);
       } else if (result !== "preserved")
         conflicts.push({ name, reason: result });
     }

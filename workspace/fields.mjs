@@ -1,4 +1,5 @@
 export const labels = {
+  summary: "要点",
   meeting: "会議の時間",
   forecast: "仮の見通し",
   status: "作業状態",

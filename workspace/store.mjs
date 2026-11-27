@@ -36,7 +36,10 @@ const fields = {
     properties: { start: instant, end: instant },
   },
   title: text,
-  status: { enum: ["backlog", "ready", "active", "waiting", "done"] },
+  status: {
+    enum: ["backlog", "ready", "active", "waiting", "done", "reference"],
+  },
+  summary: text,
   nextAction: text,
   question: text,
   estimate: text,
@@ -204,70 +207,73 @@ export function fieldSources(events) {
 export function applyEvents(db, events) {
   if (!Array.isArray(events) || !events.length)
     throw new Error("Expected a nonempty JSON array of updates.");
-  return transaction(db, () =>
-    events.map((event) => {
-      if (!validateEvent(event))
-        throw new Error(ajv.errorsText(validateEvent.errors));
-      const forecast = event.changes.forecast;
-      if (forecast?.through && forecast.through < forecast.from)
-        throw new Error("Forecast end precedes its start.");
-      const meeting = event.changes.meeting;
-      if (meeting?.end && Date.parse(meeting.end) <= Date.parse(meeting.start))
-        throw new Error("Meeting end must follow its start.");
-      const prior = db
-        .prepare("SELECT payload,revision FROM events WHERE id=?")
-        .get(event.event);
-      if (prior) {
-        if (!isDeepStrictEqual(JSON.parse(prior.payload), event))
-          throw new Error(`Event ID already used: ${event.event}`);
-        return { event: event.event, revision: prior.revision, replay: true };
-      }
-      if (event.file) {
-        const { file } = inspectSource(db, event.file.path, event.project);
-        if (!isDeepStrictEqual(file, event.file))
-          throw new Error(
-            "Source changed since selection. Read it again before applying.",
-          );
-      }
-      const current = db
-        .prepare(
-          "SELECT revision,state FROM events WHERE project=? AND item=? ORDER BY revision DESC LIMIT 1",
-        )
-        .get(event.project, event.item);
-      if ((current?.revision ?? 0) !== event.base)
+  return transaction(db, () => recordEvents(db, events));
+}
+
+// The caller owns the transaction, including any note review receipts.
+export function recordEvents(db, events) {
+  return events.map((event) => {
+    if (!validateEvent(event))
+      throw new Error(ajv.errorsText(validateEvent.errors));
+    const forecast = event.changes.forecast;
+    if (forecast?.through && forecast.through < forecast.from)
+      throw new Error("Forecast end precedes its start.");
+    const meeting = event.changes.meeting;
+    if (meeting?.end && Date.parse(meeting.end) <= Date.parse(meeting.start))
+      throw new Error("Meeting end must follow its start.");
+    const prior = db
+      .prepare("SELECT payload,revision FROM events WHERE id=?")
+      .get(event.event);
+    if (prior) {
+      if (!isDeepStrictEqual(JSON.parse(prior.payload), event))
+        throw new Error(`Event ID already used: ${event.event}`);
+      return { event: event.event, revision: prior.revision, replay: true };
+    }
+    if (event.file) {
+      const { file } = inspectSource(db, event.file.path, event.project);
+      if (!isDeepStrictEqual(file, event.file))
         throw new Error(
-          `Read the current revision of ${event.project}/${event.item} and reconcile the update.`,
+          "Source changed since selection. Read it again before applying.",
         );
-      if (current) {
-        const sources = fieldSources(history(db, event.project, event.item));
-        const older = Object.keys(event.changes).filter(
-          (key) => sources.get(key)?.observed > event.observed,
-        );
-        if (older.length)
-          throw new Error(
-            `Later evidence exists for ${event.project}/${event.item}: ${older.join(", ")}. Reconcile the source dates.`,
-          );
-      }
-      const state = {
-        ...(current ? JSON.parse(current.state) : {}),
-        ...event.changes,
-      };
-      if (!state.title || !state.status)
-        throw new Error("New items need a title and a status.");
-      const revision = event.base + 1;
-      db.prepare(
-        "INSERT INTO events(id,project,item,revision,payload,state) VALUES (?,?,?,?,?,?)",
-      ).run(
-        event.event,
-        event.project,
-        event.item,
-        revision,
-        JSON.stringify(event),
-        JSON.stringify(state),
+    }
+    const current = db
+      .prepare(
+        "SELECT revision,state FROM events WHERE project=? AND item=? ORDER BY revision DESC LIMIT 1",
+      )
+      .get(event.project, event.item);
+    if ((current?.revision ?? 0) !== event.base)
+      throw new Error(
+        `Read the current revision of ${event.project}/${event.item} and reconcile the update.`,
       );
-      return { event: event.event, revision, replay: false };
-    }),
-  );
+    if (current) {
+      const sources = fieldSources(history(db, event.project, event.item));
+      const older = Object.keys(event.changes).filter(
+        (key) => sources.get(key)?.observed > event.observed,
+      );
+      if (older.length)
+        throw new Error(
+          `Later evidence exists for ${event.project}/${event.item}: ${older.join(", ")}. Reconcile the source dates.`,
+        );
+    }
+    const state = {
+      ...(current ? JSON.parse(current.state) : {}),
+      ...event.changes,
+    };
+    if (!state.title || !state.status)
+      throw new Error("New items need a title and a status.");
+    const revision = event.base + 1;
+    db.prepare(
+      "INSERT INTO events(id,project,item,revision,payload,state) VALUES (?,?,?,?,?,?)",
+    ).run(
+      event.event,
+      event.project,
+      event.item,
+      revision,
+      JSON.stringify(event),
+      JSON.stringify(state),
+    );
+    return { event: event.event, revision, replay: false };
+  });
 }
 
 export function items(db, project) {
