@@ -80,7 +80,7 @@ flowchart LR
     Issue[Issue with acceptance criteria] --> Branch[Development branch]
     Branch --> PR[Pull request with evidence]
     PR --> Checks[Repository checks]
-    Checks --> Review[Human review]
+    Checks --> Merge[Merge when review requirements are met]
 ```
 
 Use a GitHub issue for each independently verifiable outcome. Use the Project
@@ -95,7 +95,7 @@ checks and fix actionable failures before merge.
 
 For a solo maintainer, the recommended protection for `main` is to require a
 PR and the **Repository checks** status, with zero required approving reviews.
-The maintainer makes the merge decision. Keep force pushes and branch deletion
+Agents may merge eligible PRs under this repository’s standing authorization. Keep force pushes and branch deletion
 disabled. Changes to repository protection require explicit human approval.
 
 Link the issue from the PR with `Closes #<number>`. Describe what changed and
