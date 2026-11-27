@@ -24,7 +24,7 @@ jobs:
           node-version-file: mise.toml
           package-manager-cache: false
       - run: npm exec --yes --package=pnpm@12.21.0 -- pnpm install --frozen-lockfile --ignore-scripts
-      - run: node --test test/private-workspace.test.mjs
+      - run: node --test test/private-workspace.test.mjs test/workweek-trial.test.mjs
         env:
           AGENTIC_PM_CROSS_DRIVE: "1"
       - if: inputs.obsidian
