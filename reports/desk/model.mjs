@@ -40,7 +40,8 @@ export function buildDesk(snapshot, owner) {
     (task) =>
       ["active", "ready"].includes(task.stage) &&
       task.nextAction &&
-      !task.needsDecision,
+      !task.needsDecision &&
+      !task.unassignedProject,
   );
   const questions = tasks
     .filter((task) => task.needsDecision)

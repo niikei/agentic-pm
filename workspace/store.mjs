@@ -113,7 +113,7 @@ export function openWorkspace(directory) {
   throw new Error("Unknown workspace version.");
 }
 
-function transaction(db, fn) {
+export function transaction(db, fn) {
   db.exec("BEGIN IMMEDIATE");
   try {
     const result = fn();

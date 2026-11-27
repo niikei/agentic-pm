@@ -31,6 +31,21 @@ The [synthetic meeting update](../workspace/examples/meeting.json) is ready to r
 
 A source path can match several projects. Use other explicit evidence to resolve it or capture the open question under the built-in `inbox` project. Keep an estimate with its assumptions, a confirmed deadline in `dueDate`, and the next check-in in `followUp`. Use `hypothesis` for an inference about a stakeholder and `question` for what would confirm it. Put only intentionally reader-ready wording in `managerUpdate`. Apply a correction to source systems such as GitHub only within the separate authority for that project.
 
+## Start the day or prepare a meeting
+
+Applying a batch refreshes the portfolio's `desk.html` in the private workspace. Open this file on the laptop. The first card links to the task and its dated evidence. The deadline chart counts confirmed deadlines. A separate list shows follow-ups, including requests for clarification. Refresh the desk at the start of a new day to advance the Tokyo date. Each project can also have its own desk.
+
+```powershell
+node workspace/cli.mjs $desk desk
+node workspace/cli.mjs $desk desk pilot
+node workspace/cli.mjs $desk agenda
+node workspace/cli.mjs $desk manager pilot
+```
+
+Ask the agent “What might I forget?” or “What should I raise in the meeting?” The `agenda` command gives it the recorded next action, due follow-ups, item estimates, questions and labeled hypotheses. Open task history to check an assumption. The agent can use a selected meeting's purpose to choose which of those questions belong in that meeting.
+
+The `manager` command writes a separate Markdown draft using only current, explicitly prepared manager wording and observation dates. A later item update retires earlier wording until it is reaffirmed. The inbox and private citations stay in the personal views. Review the draft before sharing. Copy a generated view before making manual edits; re-running its command replaces that view.
+
 ## Read the result in Obsidian or another editor
 
 Export an optional [Open Knowledge Format v0.3 bundle](https://github.com/open-knowledge-format/open-knowledge-format/blob/527e81aff55992be21507e97004286789126f88c/SPEC.md) into a **new** folder inside an authorized private vault or anywhere else you read Markdown. Open its `index.md`. Omit the final project ID to include all projects and the inbox.

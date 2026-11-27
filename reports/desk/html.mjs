@@ -72,6 +72,26 @@ ${rows.length ? `<ul class="change-list">${rows.slice(0, 3).join("")}</ul>` : "<
 ${rows.length > 3 ? `<details><summary>残り${rows.length - 3}件を表示</summary><ul class="change-list">${rows.slice(3).join("")}</ul></details>` : ""}</section>`;
 }
 
+function privateNotes(task) {
+  const facts = [
+    ["次回確認日", task.followUp],
+    ["見積もりと前提", task.estimate],
+    ["関係者についての仮説", task.hypothesis],
+  ];
+  return (
+    facts
+      .filter(([, value]) => value)
+      .map(([label, value]) => `<p>${label} · ${h(value)}</p>`)
+      .join("") +
+    `<h4>根拠と変更履歴</h4><ul>${task.evidence.map((event) => `<li>${h(event.date)} · ${h(event.source)}（${h(event.changes.join("、"))}）</li>`).join("")}</ul>`
+  );
+}
+
+function followUps(desk) {
+  if (!desk.followUps?.length) return "";
+  return `<section class="panel"><div class="section-head"><h2>次回の確認</h2></div><ul class="follow-ups">${desk.followUps.map((task) => `<li><time datetime="${h(task.followUp)}">${h(task.followUp)}</time> <a href="${h(task.url)}">${h(task.title)}</a></li>`).join("")}</ul></section>`;
+}
+
 function taskRow(task) {
   const tone =
     task.offset === null
@@ -89,7 +109,7 @@ function taskRow(task) {
     ? ` · 関連PR ${task.linkedChanges.length}件`
     : "";
   return `<tr data-id="${h(task.id)}" data-stage="${task.stage}" data-date="${h(task.dueDate ?? "")}" data-offset="${task.offset ?? ""}" data-question="${task.needsDecision}">
-<td><span class="key">${label}${h(task.id)}${h(ties)}${task.changeState ? ` · ${h(task.changeState)}` : ""}</span><details><summary>${h(task.title)}</summary><div class="notes"><p>${h(task.nextAction ?? "次の行動は未記録です。")}</p>${task.question ? `<p>確認事項 · ${h(task.question)}</p>` : ""}<p>担当 · ${h(task.owners.join("、") || "未割り当て")}</p><a href="${h(task.url)}">${projectRecord ? `${label.trim()}を開く` : "元の記録を開く"} ↗</a>${relatedRecords(task.linkedChanges, "PR")}${relatedRecords(task.linkedIssues, "Issue")}</div></details></td><td><span class="status ${task.stage}">${stages[task.stage]}</span></td><td class="due ${tone}">${task.dueDate ? md(task.dueDate) : "未記録"}${tone ? `<small>${due(task)}</small>` : ""}</td></tr>`;
+<td><span class="key">${label}${h(task.id)}${h(ties)}${task.changeState ? ` · ${h(task.changeState)}` : ""}</span><details${task.target ? ` id="${h(task.target)}"` : ""}><summary>${h(task.title)}</summary><div class="notes"><p>${h(task.nextAction ?? "次の行動は未記録です。")}</p>${task.question ? `<p>確認事項 · ${h(task.question)}</p>` : ""}<p>担当 · ${h(task.owners.join("、") || "未割り当て")}</p>${task.evidence ? privateNotes(task) : `<a href="${h(task.url)}">${projectRecord ? `${label.trim()}を開く` : "元の記録を開く"} ↗</a>`}${relatedRecords(task.linkedChanges, "PR")}${relatedRecords(task.linkedIssues, "Issue")}</div></details></td><td><span class="status ${task.stage}">${stages[task.stage]}</span></td><td class="due ${tone}">${task.dueDate ? md(task.dueDate) : "未記録"}${tone ? `<small>${due(task)}</small>` : ""}</td></tr>`;
 }
 
 function register(desk) {
@@ -163,6 +183,6 @@ ${styles}</style></head>
         : jump(count === null ? "undated" : filter, contents);
     })
     .join("")}</div>
-<div class="lower">${desk.recentChanges ? `<div class="desk-work">${register(desk)}${recentWork(desk)}</div>` : register(desk)}<div class="side">${questions(desk)}${distribution(desk)}</div></div></main></div>
+<div class="lower">${desk.recentChanges ? `<div class="desk-work">${register(desk)}${recentWork(desk)}</div>` : register(desk)}<div class="side">${followUps(desk)}${questions(desk)}${distribution(desk)}</div></div></main></div>
 <template id="font-license"><pre>${h(license)}</pre></template><script>${script}</script></body></html>\n`;
 }

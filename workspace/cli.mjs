@@ -11,6 +11,8 @@ import {
   register,
 } from "./store.mjs";
 
+import { agenda, publishView, workDesk } from "./views.mjs";
+
 const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
   init
   register PROJECT NAME [ABSOLUTE_DIRECTORY ...]
@@ -19,7 +21,10 @@ const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
   apply UPDATE_FILE
   items [PROJECT]
   history PROJECT ITEM
-  okf NEW_DIRECTORY [PROJECT]`;
+  okf NEW_DIRECTORY [PROJECT]
+  desk [PROJECT]
+  agenda [PROJECT]
+  manager [PROJECT]`;
 const [directory, command, ...args] = process.argv.slice(2);
 function run() {
   if (directory === "--help") return usage;
@@ -44,14 +49,26 @@ function run() {
         if (args.length === 1) return locate(db, args[0]);
         break;
       case "apply":
-        if (args.length === 1)
-          return applyEvents(
+        if (args.length === 1) {
+          const updates = applyEvents(
             db,
             JSON.parse(readFileSync(args[0], "utf8").replace(/^\uFEFF/, "")),
           );
+          const desk = publishView(db, directory, "desk");
+          return { updates, desk };
+        }
         break;
       case "items":
         if (args.length <= 1) return items(db, args[0]);
+        break;
+      case "desk":
+      case "manager":
+        if (args.length <= 1)
+          return publishView(db, directory, command, args[0]);
+        break;
+      case "agenda":
+        if (args.length <= 1)
+          return agenda(workDesk(db, args[0], new Date().toISOString()));
         break;
       case "okf":
         if (args.length === 1 || args.length === 2)

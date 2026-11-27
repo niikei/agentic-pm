@@ -822,3 +822,10 @@
     color: var(--teal);
   }
 }
+
+.follow-ups li {
+  margin-block: 0.65em;
+}
+.follow-ups time {
+  font-variant-numeric: tabular-nums;
+}

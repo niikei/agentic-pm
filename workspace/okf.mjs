@@ -1,25 +1,11 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { stages } from "../reports/desk/model.mjs";
 import { markdownText } from "../reports/writers/markdown.mjs";
+import { labels } from "./fields.mjs";
 import { history, items } from "./store.mjs";
 
-const labels = {
-  status: "作業状態",
-  nextAction: "次の行動",
-  question: "要確認",
-  dueDate: "確定期限",
-  followUp: "次回確認日",
-  estimate: "見積もりと前提",
-  hypothesis: "仮説",
-  managerUpdate: "上司向けの記述",
-};
-const status = {
-  backlog: "未着手",
-  ready: "着手可能",
-  active: "進行中",
-  waiting: "待機中",
-  done: "完了",
-};
+const status = { ...stages, done: "完了" };
 
 function concept(item, events) {
   const sourceOf = new Map();
