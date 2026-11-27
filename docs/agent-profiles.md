@@ -22,7 +22,20 @@ Commit the installed directory so the team can review and reproduce the chosen v
 
 ## Update or roll back
 
-Start with a clean working tree. If the installed directory has local changes, save them in Git first and compare them with the upstream revision. Reapply any intentional customization before accepting the update. Preview and inspect the new full commit as above. On an update branch, repeat the install command with the new SHA and `--force` to replace the installed copy. Inspect the entire directory diff, including added and removed files, verify the pin with `gh skill list`, and rerun the plan. Commit the skill update separately.
+Start on an update branch with a clean working tree. Commit or save local edits first. In a consumer trial, reinstalling with `--force` overwrote a customized file but retained files absent from the selected revision. The CLI reported the requested pin even with the extra files present.
+
+Preview the new commit and review its skill sources. Move the installed copy into a temporary directory, then install into the empty destination. Keep the backup until the updated plan works. If installation fails, move the partial copy aside and restore the backup.
+
+```sh
+backup_dir=$(mktemp -d)
+mv .agents/skills/github-project-cycle "$backup_dir/"
+gh skill install niikei/agentic-pm github-project-cycle --pin REVIEWED_COMMIT --allow-hidden-dirs --agent codex --scope project
+gh skill list --agent codex --scope project --json skillName,version,pinned
+git add -A -- .agents/skills/github-project-cycle
+git diff --cached -- .agents/skills/github-project-cycle
+```
+
+Compare intentional customizations with the backup and reapply the ones you need. Review the final staged changes, including removals, rerun the plan and commit the skill update separately.
 
 To roll back a committed update, run `git revert UPDATE_COMMIT` on a branch, resolve any conflicts with later edits, and review the resulting pin and directory contents. This also removes files introduced by that update. Repeat the previous version's documented check. Versions that predate the bundled reporter support the individual issue and PR commands in their installed instructions.
 
