@@ -98,6 +98,7 @@ query MilestoneReport(
               }
               repository {
                 id
+                visibility @include(if: $plan)
               }
             }
           }
