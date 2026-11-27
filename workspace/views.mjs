@@ -19,6 +19,8 @@ export function workDesk(db, project, asOf) {
     const evidence = events.map((event) => ({
       date: event.observed,
       source: event.source,
+      permalink: event.permalink,
+      path: event.file?.path,
       changes: Object.keys(event.changes).map((key) => labels[key] ?? "件名"),
     }));
     return {

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { escapeHtml as h } from "../writers/html.mjs";
+import { sourceUrl } from "../writers/shared.mjs";
 import { stages } from "./model.mjs";
 
 const asset = (file) => readFileSync(new URL(file, import.meta.url), "utf8");
@@ -72,6 +73,17 @@ ${rows.length ? `<ul class="change-list">${rows.slice(0, 3).join("")}</ul>` : "<
 ${rows.length > 3 ? `<details><summary>残り${rows.length - 3}件を表示</summary><ul class="change-list">${rows.slice(3).join("")}</ul></details>` : ""}</section>`;
 }
 
+function evidenceRow(event) {
+  const url = sourceUrl(event.permalink);
+  const source = url
+    ? `<a href="${h(url)}" rel="noreferrer">${h(event.source)} ↗</a>`
+    : h(event.source);
+  const path = event.path
+    ? `<code class="source-path">${h(event.path)}</code>`
+    : "";
+  return `<li>${h(event.date)} · ${source}（${h(event.changes.join("、"))}）${path}</li>`;
+}
+
 function privateNotes(task) {
   const facts = [
     ["会議の時間", task.meetingLabel],
@@ -84,7 +96,7 @@ function privateNotes(task) {
       .filter(([, value]) => value)
       .map(([label, value]) => `<p>${label} · ${h(value)}</p>`)
       .join("") +
-    `<h4>根拠と変更履歴</h4><ul>${task.evidence.map((event) => `<li>${h(event.date)} · ${h(event.source)}（${h(event.changes.join("、"))}）</li>`).join("")}</ul>`
+    `<h4>根拠と変更履歴</h4><ul>${task.evidence.map(evidenceRow).join("")}</ul>`
   );
 }
 

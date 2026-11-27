@@ -25,7 +25,14 @@ export function utcTime(asOf) {
 }
 
 export function sourceUrl(value) {
-  if (!URL.canParse(value)) return null;
+  if (
+    typeof value !== "string" ||
+    !/^https:\/\//i.test(value) ||
+    !URL.canParse(value)
+  )
+    return null;
   const url = new URL(value);
-  return url.protocol === "https:" ? url.href : null;
+  return url.protocol === "https:" && !url.username && !url.password
+    ? url.href
+    : null;
 }

@@ -39,6 +39,12 @@ A source path can match several projects. Use other explicit evidence to resolve
 
 For a fixed appointment, record `meeting` with an ISO 8601 `start` and an optional `end`, both with a timezone offset. For example, a calendar showing December 2 from 10:30 to 11:00 JST supplies `{"start":"2026-12-02T10:30:00+09:00","end":"2026-12-02T11:00:00+09:00"}`. Upcoming and ongoing meetings have their own list in the desk and agenda. Preserve an unknown purpose or project as a question. Use a work deadline only when a source confirms the delivery commitment.
 
+## Work across code repositories
+
+Use the project registry to select the authorized checkout for a coding task. Read its repository instructions and current changes. Run its normal tests, then record what passed with the repository, commit or file and observation date. A task can cite work in several repositories through updates to the same item. Each repository keeps its own branches and review process.
+
+For a GitHub-managed item, inspect the native issue or PR in its repository. For example, `gh issue view ISSUE_URL --json title,state,url,updatedAt` reads an issue without a local clone. Include the selected HTTPS URL in the optional event-level `permalink` field. The private desk opens it from the evidence list, and the OKF concept includes it as a source. Recheck the native record before changing shared status. Use a stable URL intended for the reader. An agent may also use selected local files without a GitHub account or network connection.
+
 ## Recheck a note that keeps changing
 
 For an explicitly selected local file, the agent can run `inspect` before reading it. The command returns matching project IDs and a `file` object containing the canonical path and SHA-256 fingerprint. Include that object in an update alongside a human-readable source locator, such as a heading, slide, cell or screenshot date. Intake rejects a new update if the selected file changed since inspection. Chat and pasted text can use a source label alone.
