@@ -14,6 +14,8 @@ node workspace/cli.mjs $desk register ops "Operations" "E:\Operations" "C:\Notes
 node workspace/cli.mjs $desk projects
 ```
 
+If a common calendar or daily-notes folder supplies evidence to many projects, register it once with `node workspace/cli.mjs $desk shared "C:\Notes\Daily"`. An agent may cite a selected file there for any registered project. The location alone leaves the destination open.
+
 Use only directories approved for the selected AI session. Select a single note, meeting excerpt or screenshot for intake. A vault's settings, attachments and other notes can stay untouched. Registered paths and local work records belong in the private workspace. This repository's public Project tracks development of the tool.
 
 ## Open a fresh AI session
@@ -34,6 +36,8 @@ node workspace/cli.mjs $desk history pilot reader-test
 The [synthetic meeting update](../workspace/examples/meeting.json) is ready to replay after registering `pilot`. Each update has a stable event ID, project and item IDs, the revision read (`base`), an observation date, a source locator, and the changed fields. The first revision supplies a title and status. Omitted fields keep their values. Use `null` to clear an optional field. Replaying the same event is safe. The full batch rolls back on a revision conflict. Read the history before reconciling an earlier observation with a later decision.
 
 A source path can match several projects. Use other explicit evidence to resolve it or capture the open question under the built-in `inbox` project. Keep an estimate with its assumptions, a confirmed deadline in `dueDate`, and the next check-in in `followUp`. Use `hypothesis` for an inference about a stakeholder and `question` for what would confirm it. Put only intentionally reader-ready wording in `managerUpdate`. Apply a correction to source systems such as GitHub only within the separate authority for that project.
+
+For a fixed appointment, record `meeting` with an ISO 8601 `start` and an optional `end`, both with a timezone offset. For example, a calendar showing December 2 from 10:30 to 11:00 JST supplies `{"start":"2026-12-02T10:30:00+09:00","end":"2026-12-02T11:00:00+09:00"}`. Upcoming and ongoing meetings have their own list in the desk and agenda. Preserve an unknown purpose or project as a question. Use a work deadline only when a source confirms the delivery commitment.
 
 ## Recheck a note that keeps changing
 

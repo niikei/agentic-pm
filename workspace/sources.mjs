@@ -55,13 +55,16 @@ function digest(file) {
 export function inspectSource(db, file, project) {
   if (!isAbsolute(file)) throw new Error("Select an absolute file path.");
   const path = realpathSync(file);
-  const candidates = locate(db, path);
+  const roots = locate(db, path);
+  const shared = roots.includes("inbox");
+  const candidates = roots.filter((id) => id !== "inbox");
   if (
-    !candidates.length ||
-    (project && project !== "inbox" && !candidates.includes(project))
+    !shared &&
+    (!candidates.length ||
+      (project && project !== "inbox" && !candidates.includes(project)))
   )
     throw new Error("Source is outside the project's registered roots.");
-  return { candidates, file: { path, sha256: digest(path) } };
+  return { candidates, shared, file: { path, sha256: digest(path) } };
 }
 
 export function reviewSources(db, project) {
@@ -97,7 +100,9 @@ export function reviewSources(db, project) {
     const result = files.get(file.path);
     if (
       !result.status &&
-      (row.project === "inbox" || result.candidates.includes(row.project)) &&
+      (result.shared ||
+        row.project === "inbox" ||
+        result.candidates.includes(row.project)) &&
       result.file.sha256 === file.sha256 &&
       result.file.path === file.path
     )

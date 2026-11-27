@@ -17,6 +17,7 @@ const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
   init
   guide
   register PROJECT NAME [ABSOLUTE_DIRECTORY ...]
+  shared ABSOLUTE_DIRECTORY [...]
   projects
   locate FILE
   inspect ABSOLUTE_FILE
@@ -45,6 +46,12 @@ function run() {
       case "register":
         if (args.length >= 2) {
           register(db, args[0], args[1], args.slice(2));
+          return projects(db);
+        }
+        break;
+      case "shared":
+        if (args.length) {
+          register(db, "inbox", "未整理", args);
           return projects(db);
         }
         break;
