@@ -111,6 +111,24 @@ function nextAction(issue, repo, item, prs, criteria) {
   ];
 }
 
+function childEvidence(parent, repositoryId) {
+  const { completed, total } = parent.subIssuesSummary;
+  if (completed === total) return [];
+  const children = (parent.subIssues?.nodes ?? []).filter(
+    (child) => child?.state === "OPEN" && child.repository.id === repositoryId,
+  );
+  const lines = children.map(
+    (child) =>
+      `  - Child ${issueLink(child)} · Open blockers: ${child.issueDependenciesSummary.blockedBy}`,
+  );
+  if (
+    parent.subIssues?.pageInfo.hasNextPage ||
+    children.length < total - completed
+  )
+    lines.push(`  - [Inspect all child relationships](${parent.url})`);
+  return lines;
+}
+
 export function renderWorkPlan(repo, issues) {
   const project = repo.owner.projectV2;
   const priorityField = project.fields.nodes.find(
@@ -170,6 +188,8 @@ export function renderWorkPlan(repo, issues) {
           );
         }
       }
+      if (group === "Parent outcomes")
+        lines.push(...childEvidence(issue, repo.id));
     }
     lines.push("");
   }
