@@ -109,6 +109,55 @@ test("links open implementation PRs only from the reported repository", () => {
   assert.ok(report.endsWith("| 0 | — | — |"));
 });
 
+test("shows current head checks and review decisions per visible PR in planning mode", () => {
+  const input = planningPage([1]);
+  const [issue] = input.data.repository.milestone.issues.nodes;
+  const pr = {
+    number: 9,
+    url: "https://example.org/pull/9",
+    repository: { id: "repo" },
+    state: "OPEN",
+    isDraft: false,
+    headRefOid: "head",
+    reviewDecision: "REVIEW_REQUIRED",
+    commits: {
+      nodes: [
+        { commit: { oid: "head", statusCheckRollup: { state: "FAILURE" } } },
+      ],
+    },
+  };
+  issue.closedByPullRequestsReferences.nodes = [
+    pr,
+    {
+      ...pr,
+      number: 10,
+      url: "https://example.org/pull/10",
+      isDraft: true,
+      headRefOid: "new",
+      reviewDecision: null,
+    },
+  ];
+  const plan = renderReport([input], { plan: true });
+  assert.match(plan, /Investigate the failing checks/);
+  assert.match(plan, /pull\/9\) \(checks: failure, review: review required\)/);
+  assert.match(
+    plan,
+    /pull\/10\) \(draft\) \(checks: unreported, review: unreported\)/,
+  );
+  assert.doesNotMatch(renderReport([input]), /checks:|review:/);
+  pr.commits.nodes = [];
+  pr.reviewDecision = "CHANGES_REQUESTED";
+  assert.match(
+    renderReport([input], { plan: true }),
+    /Address the requested changes/,
+  );
+  issue.issueDependenciesSummary.blockedBy = 1;
+  assert.match(
+    renderReport([input], { plan: true }),
+    /Waiting on dependencies/,
+  );
+});
+
 test("refuses private inputs and incomplete pagination", () => {
   const hidden = page([]);
   hidden.data.repository.owner.projectV2.public = false;

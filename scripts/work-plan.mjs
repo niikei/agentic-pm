@@ -1,4 +1,5 @@
 import {
+  headCheckState,
   issueLink,
   markdownText,
   openPullRequests,
@@ -63,6 +64,16 @@ function nextAction(issue, repo, item, prs, criteria) {
   }
 
   if (prs.length) {
+    if (prs.some((pr) => ["ERROR", "FAILURE"].includes(headCheckState(pr))))
+      return [
+        "Pull requests",
+        "Investigate the failing checks on the linked PR.",
+      ];
+    if (prs.some((pr) => pr.reviewDecision === "CHANGES_REQUESTED"))
+      return [
+        "Pull requests",
+        "Address the requested changes on the linked PR.",
+      ];
     const next = prs.some((pr) => !pr.isDraft)
       ? "Review the open PR and its checks."
       : "Continue the draft implementation.";
@@ -178,7 +189,9 @@ export function renderWorkPlan(repo, issues) {
         `- **${markdownText(priority)}** · ${issueLink(issue)} — ${next}`,
       );
       if (prs.length)
-        lines.push(`  - Pull requests: ${pullRequestLinks(issue, prs)}`);
+        lines.push(
+          `  - Pull requests: ${pullRequestLinks(issue, prs, { evidence: true })}`,
+        );
       if (group === "Implementation queue") {
         for (const line of criteria
           .split(/\r?\n/)

@@ -71,6 +71,8 @@ The Project status, open dependency count and sub-issue counts come from
 GitHub. Closed includes issues closed as not planned. External blockers such
 as a pending login belong in the accompanying decision or handoff.
 
+In planning mode, each PR link includes GitHub's aggregate check state for its current head commit and its review decision. Follow the PR to inspect failures, individual reviews and merge requirements. An unreported value means the API supplied no matching evidence.
+
 The **Open PRs** column links implementation PRs in the same repository
 and marks drafts. The report reads up to ten linked PRs per issue. Follow
 **See issue** when GitHub has more links. Review and CI status are on the PR.

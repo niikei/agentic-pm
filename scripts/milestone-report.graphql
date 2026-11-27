@@ -67,6 +67,18 @@ query MilestoneReport(
               url
               state
               isDraft
+              reviewDecision @include(if: $plan)
+              headRefOid @include(if: $plan)
+              commits(last: 1) @include(if: $plan) {
+                nodes {
+                  commit {
+                    oid
+                    statusCheckRollup {
+                      state
+                    }
+                  }
+                }
+              }
               repository {
                 id
               }
