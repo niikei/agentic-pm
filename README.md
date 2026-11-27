@@ -12,6 +12,8 @@ To try it, follow the [browser walkthrough](docs/lifecycle.md) or give your agen
 
 From a [configured checkout](#getting-started), run `mise exec -- pnpm desk:project` and open the printed HTML path. The operator desk reads this project's live board, open issues, open PRs and recent merges. Expand an issue to follow its linked PR or open a merge to see the work it delivered. For a manager, run `mise exec -- pnpm desk:project manager` to generate a standalone outcome brief from dated observations. [Refresh and evidence scope](reports/README.md#refresh-the-agentic-pm-desk).
 
+For work spread across local repositories, ordinary folders or Obsidian vaults, use the [private work desk](docs/private-workspace.md). It accepts selected evidence and can export a project as an Open Knowledge Format bundle.
+
 ## Try a daily plan in your own checkout
 
 Use Node.js 26 and an authenticated GitHub CLI with read access to the public Project. The v0.1.0 release ships the instructions. The following reviewed revision also includes the daily planner and its GraphQL query. Preview the instructions and inspect the [files at the pinned revision](https://github.com/niikei/agentic-pm/tree/8dde0e0de64a8ad12d0ddb098b63c45877845270/.agents/skills/github-project-cycle) before installation.
