@@ -71,7 +71,7 @@ export function renderReport(pages, { plan = false } = {}) {
     "",
     "Blocker counts cover linked GitHub issues. Open the issue for pending access or decisions.",
     "",
-    "| Issue | Issue state | Project status | Open blockers | Sub-issues completed | Open PRs |",
+    "| Issue | Issue state | Project status | Open blockers | Closed sub-issues | Open PRs |",
     "| --- | --- | --- | ---: | ---: | --- |",
   ];
   for (const issue of issues) {
@@ -79,9 +79,9 @@ export function renderReport(pages, { plan = false } = {}) {
       issue.state === "CLOSED"
         ? `Closed (${issue.stateReason?.toLowerCase().replaceAll("_", " ") ?? "reason unreported"})`
         : issue.state.toLowerCase();
-    const { completed, total } = issue.subIssuesSummary;
+    const { completed: closedChildren, total } = issue.subIssuesSummary;
     lines.push(
-      `| ${issueLink(issue)} | ${state} | ${statusFor(issue, project.id)} | ${issue.issueDependenciesSummary.blockedBy} | ${total ? `${completed}/${total}` : "—"} | ${pullRequestLinks(issue, openPullRequests(issue, repo.id))} |`,
+      `| ${issueLink(issue)} | ${state} | ${statusFor(issue, project.id)} | ${issue.issueDependenciesSummary.blockedBy} | ${total ? `${closedChildren}/${total}` : "—"} | ${pullRequestLinks(issue, openPullRequests(issue, repo.id))} |`,
     );
   }
   return lines.join("\n");

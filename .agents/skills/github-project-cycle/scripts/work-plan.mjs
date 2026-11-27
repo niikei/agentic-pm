@@ -123,15 +123,15 @@ function nextAction(issue, repo, item, prs, criteria, needsDecision) {
       "Inspect the remaining linked PRs before starting work.",
     ];
 
-  const { completed, total } = issue.subIssuesSummary;
+  const { completed: closedChildren, total } = issue.subIssuesSummary;
   if (total) {
     const next =
-      completed === total
-        ? "Verify the completed children against the parent outcome."
+      closedChildren === total
+        ? "Review the children's closure reasons and verify the parent outcome."
         : "Coordinate the remaining child issues.";
     return [
       "Parent outcomes",
-      `${next} ${completed}/${total} children complete.`,
+      `${next} ${closedChildren}/${total} child issues closed.`,
     ];
   }
   if (repo.owner.projectV2.closed)
@@ -166,8 +166,8 @@ function nextAction(issue, repo, item, prs, criteria, needsDecision) {
 }
 
 function childEvidence(parent, repositoryId) {
-  const { completed, total } = parent.subIssuesSummary;
-  if (completed === total) return [];
+  const { completed: closedChildren, total } = parent.subIssuesSummary;
+  if (closedChildren === total) return [];
   const children = (parent.subIssues?.nodes ?? []).filter(
     (child) => child?.state === "OPEN" && child.repository.id === repositoryId,
   );
@@ -177,7 +177,7 @@ function childEvidence(parent, repositoryId) {
   );
   if (
     parent.subIssues?.pageInfo.hasNextPage ||
-    children.length < total - completed
+    children.length < total - closedChildren
   )
     lines.push(`  - [Inspect all child relationships](${parent.url})`);
   return lines;
