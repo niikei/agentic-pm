@@ -10,10 +10,10 @@ To try it, follow the [browser walkthrough](docs/lifecycle.md) or give your agen
 
 ## Try a daily plan in your own checkout
 
-Use Node.js 26 and an authenticated GitHub CLI with read access to the public Project. The v0.1.0 release ships the instructions. The following reviewed revision also includes the daily planner and its GraphQL query. Preview the instructions and inspect the [files at the pinned revision](https://github.com/niikei/agentic-pm/tree/f3ccda72107a5fb9a9658bff84458992deb2fd42/.agents/skills/github-project-cycle) before installation.
+Use Node.js 26 and an authenticated GitHub CLI with read access to the public Project. The v0.1.0 release ships the instructions. The following reviewed revision also includes the daily planner and its GraphQL query. Preview the instructions and inspect the [files at the pinned revision](https://github.com/niikei/agentic-pm/tree/a6ddb0e33af88d7b262477a67488ab0526b1344b/.agents/skills/github-project-cycle) before installation.
 
 ```sh
-revision=f3ccda72107a5fb9a9658bff84458992deb2fd42
+revision=a6ddb0e33af88d7b262477a67488ab0526b1344b
 gh skill preview niikei/agentic-pm "github-project-cycle@$revision" --allow-hidden-dirs
 gh skill install niikei/agentic-pm github-project-cycle --pin "$revision" --allow-hidden-dirs --agent codex --scope project
 node .agents/skills/github-project-cycle/scripts/milestone-report.mjs vitejs/vite 1 36 --plan
