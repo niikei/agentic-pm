@@ -8,7 +8,18 @@ Start with the [development board](https://github.com/users/niikei/projects/1). 
 
 To try it, follow the [browser walkthrough](docs/lifecycle.md) or give your agent the [project-cycle skill](.agents/skills/github-project-cycle/SKILL.md). Codex is the first implementation exercised against the live Project. GitHub Copilot and Claude Code are optional integration targets. See the [agent profiles and validation evidence](docs/agent-profiles.md) and the [roadmap](docs/research/planning-and-reporting.md#prioritized-roadmap).
 
-To use the skill in another repository, follow the [project-scoped installation](docs/agent-profiles.md#install-in-another-repository).
+## Try a daily plan in your own checkout
+
+Use Node.js 26 and an authenticated GitHub CLI with read access to the public Project. The v0.1.0 release ships the instructions. The following reviewed revision also includes the daily planner and its GraphQL query. Preview the instructions and inspect the [files at the pinned revision](https://github.com/niikei/agentic-pm/tree/f3ccda72107a5fb9a9658bff84458992deb2fd42/.agents/skills/github-project-cycle) before installation.
+
+```sh
+revision=f3ccda72107a5fb9a9658bff84458992deb2fd42
+gh skill preview niikei/agentic-pm "github-project-cycle@$revision" --allow-hidden-dirs
+gh skill install niikei/agentic-pm github-project-cycle --pin "$revision" --allow-hidden-dirs --agent codex --scope project
+node .agents/skills/github-project-cycle/scripts/milestone-report.mjs vitejs/vite 1 36 --plan
+```
+
+The example reads Vite’s public Project and milestone. For your own roadmap, substitute its repository and numbers. For work without a milestone, start with the [Project query](.agents/skills/github-project-cycle/SKILL.md#generate-a-daily-plan). If the skill is already installed, follow the [update and rollback procedure](docs/agent-profiles.md#update-or-roll-back).
 
 ## Getting started
 
