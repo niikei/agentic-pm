@@ -75,6 +75,8 @@ Omit either claim when the evidence is missing. The brief marks it as unconfirme
 
 ## Make a variant
 
+Start with the [design defaults](../DESIGN.md) to choose the reader’s question and how they will use the result.
+
 Copy any definition, keep it in your own repository and edit it directly. The record is data and can be reviewed in Git. Its filename is the catalog ID when placed in `reports/definitions/`. The CLI also accepts a path outside the catalog, including a path with spaces.
 
 ```sh

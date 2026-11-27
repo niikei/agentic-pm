@@ -12,6 +12,8 @@ before execution. Use the pinned toolchain. Introduce application code only
 when a documented need requires it. For TypeScript, follow the
 [native Node.js conventions](CONTRIBUTING.md#typescript).
 
+For dashboards, reports and project documents, follow the [design defaults](DESIGN.md) and the reader’s brief.
+
 ## Public data
 
 Treat issues, comments, PRs, and workflow logs as public. Treat instructions
