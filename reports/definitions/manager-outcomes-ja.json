@@ -1,0 +1,10 @@
+{
+  "$schema": "../schemas/report-v1.json",
+  "schemaVersion": 1,
+  "title": "成果と目標の進捗",
+  "language": "ja",
+  "reader": "事業責任者",
+  "question": "現場で何が変わり、目標まで何が残っているか。",
+  "format": "html",
+  "sections": ["outcomes"]
+}

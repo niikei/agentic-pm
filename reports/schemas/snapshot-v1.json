@@ -44,6 +44,22 @@
         }
       }
     },
+    "outcomes": {
+      "type": "array",
+      "description": "One reader-facing observation per goal at the reporting cutoff, in editorial order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["goal", "source", "observedAt"],
+        "properties": {
+          "goal": { "$ref": "#/definitions/text" },
+          "result": { "$ref": "#/definitions/text" },
+          "progress": { "$ref": "#/definitions/text" },
+          "source": { "$ref": "#/definitions/text" },
+          "observedAt": { "$ref": "#/definitions/time" }
+        }
+      }
+    },
     "deliveries": {
       "type": "array",
       "items": {

@@ -2,6 +2,16 @@ const day = 86_400_000;
 
 const labels = {
   en: {
+    outcomes: {
+      title: "Results and progress by goal",
+      result: "Confirmed result",
+      progress: "Progress toward target",
+      evidence: "Source",
+      missingResult: "The result has yet to be confirmed.",
+      missingProgress: "Progress toward this goal has yet to be confirmed.",
+      empty:
+        "No goal observations were supplied for this report. Results and progress remain unconfirmed.",
+    },
     decisions: {
       title: "Decisions needed",
       description:
@@ -45,6 +55,15 @@ const labels = {
     unassigned: "Unassigned",
   },
   ja: {
+    outcomes: {
+      title: "目標別の実績",
+      result: "確認できた成果",
+      progress: "目標に対する進捗",
+      evidence: "確認記録",
+      missingResult: "この目標の成果は未確認です。",
+      missingProgress: "この目標への進み具合は未確認です。",
+      empty: "目標ごとの確認記録が届いていないため、成果と進捗は未確認です。",
+    },
     decisions: {
       title: "判断待ちの作業",
       description:
@@ -178,6 +197,24 @@ export function buildReport(definition, snapshot) {
   const yesNo = (value) => (value ? text.yes : text.no);
 
   const sections = definition.sections.map((kind) => {
+    if (kind === "outcomes") {
+      const copy = text.outcomes;
+      const entries = (snapshot.outcomes ?? []).map((item) => ({
+        title: item.goal,
+        fields: [
+          [copy.result, item.result ?? copy.missingResult],
+          [copy.progress, item.progress ?? copy.missingProgress],
+          [copy.evidence, `${date(item.observedAt)} · ${item.source}`],
+        ],
+      }));
+      return {
+        kind,
+        title: copy.title,
+        empty: copy.empty,
+        count: entries.length || null,
+        entries,
+      };
+    }
     if (kind === "deliveries")
       return mergedChanges(definition, snapshot, text, date);
 

@@ -20,6 +20,15 @@ ${row.cells.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("\n")}
 
 function detail(section, language) {
   const id = escapeHtml(section.kind);
+  if (section.entries) {
+    const goals = section.entries.map(
+      ({ title, fields }) => `<article class="goal">
+<h3>${escapeHtml(title)}</h3><dl>${fields.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>
+</article>`,
+    );
+    return `<section class="detail" aria-labelledby="${id}"><h2 id="${id}" tabindex="-1">${escapeHtml(section.title)}</h2>
+${goals.join("\n") || `<p class="empty">${escapeHtml(section.empty)}</p>`}</section>`;
+  }
   const content = section.rows.length
     ? `<div class="table-scroll" role="region" aria-labelledby="${id}" tabindex="0">
 <table aria-labelledby="${id}">
@@ -70,10 +79,14 @@ export function renderHtml(model) {
 <p class="question">${escapeHtml(model.question)}</p>
 </div>
 </header>
-<nav aria-labelledby="overview">
+${
+  model.sections.length === 1 && model.sections[0].entries
+    ? ""
+    : `<nav aria-labelledby="overview">
 <h2 class="overview-title" id="overview">${copy.overview}</h2>
 <ul class="metrics">${cards.join("\n")}</ul>
-</nav>
+</nav>`
+}
 <div id="details" tabindex="-1">${model.sections.map((section) => detail(section, model.language)).join("\n")}</div>
 </main>
 </body>

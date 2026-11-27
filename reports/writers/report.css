@@ -158,6 +158,37 @@ h1 {
   --accent: #306141;
   --tint: #eaf1e8;
 }
+.outcomes {
+  --accent: #305a46;
+  --tint: #ebf1e8;
+}
+.goal {
+  max-width: 54rem;
+  border-top: 1px solid var(--line);
+  margin-top: 1rem;
+  padding: 1rem 0;
+  overflow-wrap: anywhere;
+  break-inside: avoid;
+}
+.goal h3 {
+  font-size: 1.2rem;
+  margin: 0 0 0.8rem;
+}
+.goal dl div {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) 1fr;
+  gap: 0.35rem 1rem;
+  margin-top: 0.45rem;
+  line-height: 1.6;
+}
+.goal dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+.goal dl div:last-child {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
 .metrics a {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -341,6 +372,9 @@ td {
   margin-top: 0.65rem;
 }
 @media screen and (max-width: 36rem) {
+  .goal dl div {
+    grid-template-columns: 1fr;
+  }
   .bins {
     display: grid;
     grid-template-columns: 1fr;

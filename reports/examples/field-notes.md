@@ -33,3 +33,9 @@ The change adding two approved sites merged on November 25 at 15:00.
 ## C-10
 
 The change recording the initial rollout scope merged on November 23 at 07:30.
+
+## Rollout results
+
+In item 1 of the November 27 operations minutes at 07:00, the field leads confirmed that North Harbor and South Harbor began using the new intake procedure this week. Last week none of the three planned sites used it. East Harbor is still scheduling its start.
+
+At 08:00 the first entry in the intake measurement register confirmed that both operating sites started recording waiting time. The register contained no baseline or follow-up comparison at the cutoff.
