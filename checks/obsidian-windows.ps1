@@ -39,10 +39,14 @@ $registry | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $profileDir 'obsidi
 function Open-TrialNote($relativePath) {
     $start = [System.Diagnostics.ProcessStartInfo]::new($binary)
     $start.UseShellExecute = $false
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
     $start.ArgumentList.Add("--user-data-dir=$profileDir")
     $destination = [uri]::EscapeDataString((Join-Path $vault $relativePath))
     $start.ArgumentList.Add("obsidian://open?path=$destination")
-    [System.Diagnostics.Process]::Start($start) | Out-Null
+    $client = [System.Diagnostics.Process]::Start($start)
+    $client.BeginOutputReadLine()
+    $client.BeginErrorReadLine()
 }
 function Find-TrialLeaf($node, $activeId) {
     if ($node.id -eq $activeId -and $node.state.type -eq 'markdown') { return $node.state.state.file }
@@ -53,8 +57,19 @@ function Find-TrialLeaf($node, $activeId) {
 }
 function Confirm-TrialNote($relativePath) {
     $workspaceFile = Join-Path $vault '.obsidian/workspace.json'
+    $stem = [IO.Path]::GetFileNameWithoutExtension($relativePath)
     $deadline = [datetime]::UtcNow.AddSeconds(55)
+    $repeatAt = [datetime]::UtcNow.AddSeconds(12)
+    $resent = $false
     do {
+        $windows = @(Get-Process Obsidian -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $binary -and $_.MainWindowHandle -ne 0 })
+        foreach ($window in $windows) {
+            if ($window.MainWindowTitle.StartsWith("$stem - Synthetic Vault - ")) { return }
+        }
+        if (!$resent -and [datetime]::UtcNow -gt $repeatAt) {
+            Open-TrialNote $relativePath
+            $resent = $true
+        }
         if (Test-Path $workspaceFile) {
             try {
                 $state = Get-Content -LiteralPath $workspaceFile -Raw | ConvertFrom-Json -AsHashtable
@@ -63,6 +78,9 @@ function Confirm-TrialNote($relativePath) {
         }
         Start-Sleep -Seconds 1
     } while ([datetime]::UtcNow -lt $deadline)
+    $hasWorkspace = Test-Path $workspaceFile
+    $trialTitles = @($windows | ForEach-Object { $_.MainWindowTitle })
+    Write-Output "Synthetic client windows: $($windows.Count). Persisted workspace: $hasWorkspace. Trial titles: $($trialTitles -join ', ')"
     throw "The desktop client did not report an active Markdown leaf for $relativePath."
 }
 
