@@ -30,24 +30,9 @@ contact in both drafts, then publish through the usual review.
 
 ## Generate and review the work breakdown
 
-Open [Copilot Chat on GitHub](https://github.com/copilot) in a session that
-can create issues in the repository. Substitute your parent issue, outcome
-and constraints in this prompt.
+Give the agent the [project-cycle skill](../.agents/skills/github-project-cycle/SKILL.md), the parent issue, the approved outcome and the constraints. Ask it to identify existing issues, propose independently verifiable deliverables and explain which can start now. Review the proposal against the existing tree before creating records.
 
-> For OWNER/REPO#PARENT, draft a work breakdown for OUTCOME under CONSTRAINTS.
-> Check existing sub-issues first. Reuse matching issues. For each missing
-> deliverable, draft a Project task with an outcome, observable acceptance
-> criteria, and public evidence or constraints. Explain which work genuinely
-> depends on another issue and which can start now. Leave owners, dates and
-> publication to the maintainer.
-
-Review the draft tree, remove duplicates, and correct unsupported claims.
-Use **Review and create** to publish accepted drafts. Check each child's
-parent, milestone, Project and Status. Add **Blocked by** relationships from
-the dependent issue's **Relationships** menu. For CLI-created issues, pass
-`--project` explicitly and check the resulting item. [Intake trial](https://github.com/niikei/agentic-pm/issues/3#issuecomment-7199470020). A parent groups deliverables;
-a dependency records ordering. Capture the published issue URLs and the
-corrections on the parent. [GitHub's Copilot issue guide](https://docs.github.com/en/copilot/how-tos/copilot-on-github/copilot-for-github-tasks/use-copilot-to-create-or-update-issues)
+In the browser, use **Add sub-issue** on the parent for accepted work. Attach each child to the milestone and Project. In the dependent issue's **Relationships** menu, choose **Blocked by** for a real prerequisite. The same records are available through `gh`. Verify each child's parent, milestone and board status after publication. Record corrections on the parent. [Worked example](https://github.com/niikei/agentic-pm/issues/15)
 
 ## Deliver and replan
 
@@ -56,7 +41,7 @@ corrections on the parent. [GitHub's Copilot issue guide](https://docs.github.co
 2. If evidence changes the sequence, record the observation, decision,
    affected issue links and condition for reconsideration on the parent.
    Change the dependency relationship only when the actual prerequisite changes.
-   Keep independent work moving. [Example decision](https://github.com/niikei/agentic-pm/issues/5#issuecomment-7199295133)
+   Keep independent work moving. [Example decision](https://github.com/niikei/agentic-pm/issues/5#issuecomment-7205444551)
 3. Verify the criteria before closing the issue. Check its Project status,
    the parent's sub-issue count and the dependent issue's open blockers. A
    maintainer handles merge and release decisions. [Contributor workflow](../CONTRIBUTING.md#public-review-workflow)

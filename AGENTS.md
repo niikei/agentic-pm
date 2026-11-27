@@ -2,7 +2,7 @@
 
 Use the [contributor workflow](CONTRIBUTING.md) for setup, checks, commit
 messages, and public updates. Resume work from the GitHub issue, its Project
-status, and its linked branch or PR. Keep private execution state outside Git.
+status, and its linked branch or PR. Use the [project-cycle skill](.agents/skills/github-project-cycle/SKILL.md) for planning and handoff. Keep private execution state outside Git.
 
 ## Implementation
 
