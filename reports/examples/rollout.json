@@ -1,0 +1,83 @@
+{
+  "$schema": "../schemas/snapshot-v1.json",
+  "project": "Harbor rollout (synthetic)",
+  "asOf": "2026-11-27T09:00:00Z",
+  "coverageStart": "2026-11-23T00:00:00Z",
+  "items": [
+    {
+      "id": "W-12",
+      "title": "Decide the third site rollout date",
+      "url": "https://github.com/niikei/agentic-pm/blob/main/reports/examples/field-notes.md#w-12",
+      "kind": "work",
+      "updatedAt": "2026-11-27T08:20:00Z",
+      "needsDecision": true,
+      "decisionSince": "2026-11-25T10:00:00Z",
+      "draft": false,
+      "owners": ["Rollout team"]
+    },
+    {
+      "id": "W-15",
+      "title": "Approve the revised training plan",
+      "url": "https://github.com/niikei/agentic-pm/blob/main/reports/examples/field-notes.md#w-15",
+      "kind": "work",
+      "updatedAt": "2026-11-27T08:30:00Z",
+      "needsDecision": true,
+      "decisionSince": null,
+      "draft": false,
+      "owners": []
+    },
+    {
+      "id": "W-18",
+      "title": "Schedule the next facilitator handoff",
+      "url": "https://github.com/niikei/agentic-pm/blob/main/reports/examples/field-notes.md#w-18",
+      "kind": "work",
+      "updatedAt": "2026-11-26T15:00:00Z",
+      "needsDecision": false,
+      "decisionSince": null,
+      "draft": false,
+      "owners": []
+    },
+    {
+      "id": "C-21",
+      "title": "Review the site readiness checklist",
+      "url": "https://github.com/niikei/agentic-pm/blob/main/reports/examples/field-notes.md#c-21",
+      "kind": "change",
+      "updatedAt": "2026-11-26T12:00:00Z",
+      "needsDecision": false,
+      "decisionSince": null,
+      "draft": false,
+      "owners": ["Field team"]
+    },
+    {
+      "id": "C-22",
+      "title": "Draft the training workbook",
+      "url": "https://github.com/niikei/agentic-pm/blob/main/reports/examples/field-notes.md#c-22",
+      "kind": "change",
+      "updatedAt": "2026-11-27T07:00:00Z",
+      "needsDecision": false,
+      "decisionSince": null,
+      "draft": true,
+      "owners": []
+    }
+  ],
+  "deliveries": [
+    {
+      "id": "C-17",
+      "title": "Publish the rehearsal results",
+      "url": "https://github.com/niikei/agentic-pm/blob/main/reports/examples/field-notes.md#c-17",
+      "at": "2026-11-27T06:00:00Z"
+    },
+    {
+      "id": "C-14",
+      "title": "Add the two approved sites",
+      "url": "https://github.com/niikei/agentic-pm/blob/main/reports/examples/field-notes.md#c-14",
+      "at": "2026-11-25T15:00:00Z"
+    },
+    {
+      "id": "C-10",
+      "title": "Record the initial rollout scope",
+      "url": "https://github.com/niikei/agentic-pm/blob/main/reports/examples/field-notes.md#c-10",
+      "at": "2026-11-23T07:30:00Z"
+    }
+  ]
+}

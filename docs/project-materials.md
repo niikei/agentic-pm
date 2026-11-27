@@ -2,6 +2,8 @@
 
 Use a one-off request or a saved writing brief to turn project records into a deliverable. A team can use the same decision to update a manager's meeting note, a customer presentation and a site-by-site WBS. Each artifact can have its own reader, language, level of detail, format and destination.
 
+For a deterministic HTML or Markdown edition, use the [report catalog](../reports/README.md). Start from a validated definition or point a custom source at the shared snapshot format.
+
 ## Install in a consumer checkout
 
 Review the [skill, starter brief and comparison command at the pinned revision](https://github.com/niikei/agentic-pm/tree/5270f88bbae72a3ed048392815bbea4f7eb8cfe0/.agents/skills/project-materials). From your destination Git checkout, run:

@@ -1,0 +1,11 @@
+{
+  "$schema": "../schemas/report-v1.json",
+  "schemaVersion": 1,
+  "title": "週次引き継ぎ",
+  "language": "ja",
+  "reader": "来週の担当者",
+  "question": "今週取り込まれた変更と、次の担当者が引き継ぐ作業は何か。",
+  "format": "markdown",
+  "periodDays": 7,
+  "sections": ["deliveries", "work"]
+}

@@ -23,6 +23,8 @@ Mise selects Node.js for this command. If Node.js 26 is already active, run the 
 
 ## Make project materials
 
+Browse the [report catalog](reports/README.md) for four ready-to-run editions in English and Japanese. Choose an HTML dashboard or a Markdown brief, preview them from the same offline sample, and fork a JSON definition to set the reader, language and sections.
+
 Ask for a one-off deliverable or save a brief for the team's recurring work. The standalone [project-materials skill](.agents/skills/project-materials/SKILL.md) uses the same project records for different audiences and formats. For example, refresh a manager's Markdown note and a workbook WBS while preserving the chair's comments and formulas. Follow the [installation and two-meeting walkthrough](docs/project-materials.md).
 
 ## Getting started
