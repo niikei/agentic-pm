@@ -1,10 +1,10 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { lstatSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { prepareReceipts } from "./intake.mjs";
-import { inspectReviewedFile } from "./sources.mjs";
+import { inspectReviewedFile, inspectSource } from "./sources.mjs";
 
-import { fieldSources, history } from "./store.mjs";
+import { fieldSources, history, transaction } from "./store.mjs";
 
 function currentCitations(db, path) {
   const items = db
@@ -24,6 +24,35 @@ function currentCitations(db, path) {
     if (fields.length) citations.push({ project, item, fields });
   }
   return citations;
+}
+
+// A confirmed move retires only the obsolete scan receipt. Historical citations
+// continue to describe the file that was actually read at each revision.
+export function confirmMove(db, from, to) {
+  if (!isAbsolute(from)) throw new Error("Use the old path reported by scan.");
+  prepareReceipts(db);
+  return transaction(db, () => {
+    const { file } = inspectSource(db, to);
+    const receipt = db.prepare(
+      "SELECT sha256 FROM reviewed_notes WHERE path=?",
+    );
+    if (receipt.get(file.path)?.sha256 !== file.sha256)
+      throw new Error("Review and capture the current destination first.");
+    const previous = receipt.get(from);
+    if (!previous) return { cleared: false };
+    if (lstatSync(from, { throwIfNoEntry: false }))
+      throw new Error("The old path still exists.");
+    if (previous.sha256 !== file.sha256)
+      throw new Error(
+        "The source contents differ; review the missing note separately.",
+      );
+    if (currentCitations(db, from).length)
+      throw new Error(
+        "Current item fields still cite the old path. Review their evidence first.",
+      );
+    db.prepare("DELETE FROM reviewed_notes WHERE path=?").run(from);
+    return { cleared: true };
+  });
 }
 
 export function noteChanges(db, directory, path) {

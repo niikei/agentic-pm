@@ -16,7 +16,7 @@ import { join, parse } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { noteChanges } from "../workspace/changes.mjs";
+import { confirmMove, noteChanges } from "../workspace/changes.mjs";
 import { capture, publishCaptured, scanNotes } from "../workspace/intake.mjs";
 import { exportBundle } from "../workspace/okf.mjs";
 import { inspectSource, locate, reviewSources } from "../workspace/sources.mjs";
@@ -863,6 +863,47 @@ test("a scoped scan records completed readings atomically, including notes witho
   assert.throws(() => scanNotes(db, desk, bound), /generated/);
   assert.throws(() => scanNotes(db, desk, dir), /registered/);
   assert.equal(readFileSync(fact, "utf8"), "See the note about the key.");
+});
+
+test("confirm a reported move only after reviewing the same bytes and updating live citations", (t) => {
+  const { dir, desk, db } = fixture(t);
+  const folder = join(dir, "shared");
+  mkdirSync(folder);
+  register(db, "pilot", "Pilot", [folder]);
+  const oldPath = join(folder, "draft.md"),
+    newPath = join(folder, "final.md");
+  writeFileSync(oldPath, "18 copies");
+  const old = inspectSource(db, oldPath).file;
+  capture(db, desk, { reviewed: [old], events: [{ ...events[0], file: old }] });
+  renameSync(oldPath, newPath);
+  const file = inspectSource(db, newPath).file;
+  const confirm = () => confirmMove(db, old.path, file.path);
+  assert.throws(confirm, /capture the current destination/);
+  capture(db, desk, { reviewed: [file], events: [] });
+  assert.throws(confirm, /fields still cite/);
+  capture(db, desk, {
+    reviewed: [],
+    events: [{ ...events[0], base: 1, event: "relocated", file }],
+  });
+  writeFileSync(oldPath, "18 copies");
+  assert.throws(confirm, /still exists/);
+  rmSync(oldPath);
+  writeFileSync(newPath, "19 copies");
+  const changed = inspectSource(db, newPath).file;
+  capture(db, desk, { reviewed: [changed], events: [] });
+  assert.throws(confirm, /contents differ/);
+  assert.deepEqual(scanNotes(db, desk, folder).missing, [old.path]);
+  writeFileSync(newPath, "18 copies");
+  capture(db, desk, { reviewed: [file], events: [] });
+  assert.deepEqual(confirm(), { cleared: true });
+  assert.deepEqual(confirm(), { cleared: false });
+  assert.deepEqual(scanNotes(db, desk, folder).missing, []);
+  assert.deepEqual(
+    history(db, "pilot", events[0].item).map((e) => e.file.path),
+    [old.path, file.path],
+  );
+  writeFileSync(oldPath, "New unrelated source at the old location.");
+  assert.equal(scanNotes(db, desk, folder).pending[0].status, "new");
 });
 
 test("conversational capture updates a stable note and resumes unfinished output after restart", (t) => {

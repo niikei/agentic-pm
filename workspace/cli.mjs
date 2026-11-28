@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { noteChanges } from "./changes.mjs";
+import { confirmMove, noteChanges } from "./changes.mjs";
 import { writeGuide } from "./guide.mjs";
 import { capture, publishCaptured, scanNotes } from "./intake.mjs";
 import { exportBundle } from "./okf.mjs";
@@ -26,6 +26,7 @@ const usage = `node workspace/cli.mjs WORKSPACE COMMAND [arguments]
   locate FILE
   inspect ABSOLUTE_FILE
   review [PROJECT]
+  confirm-move OLD_ABSOLUTE_NOTE NEW_ABSOLUTE_NOTE
   changes ABSOLUTE_NOTE
   scan ABSOLUTE_NOTES_DIRECTORY
   capture [BATCH_FILE]
@@ -75,6 +76,9 @@ function run() {
         break;
       case "locate":
         if (args.length === 1) return locate(db, args[0]);
+        break;
+      case "confirm-move":
+        if (args.length === 2) return confirmMove(db, ...args);
         break;
       case "changes":
         if (args.length === 1) return noteChanges(db, directory, args[0]);
