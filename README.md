@@ -12,7 +12,14 @@ To try it, follow the [browser walkthrough](docs/lifecycle.md) or give your agen
 
 From a [configured checkout](#getting-started), run `mise exec -- pnpm desk:project` and open the printed HTML path. The operator desk reads this project's live board, open issues, open PRs and recent merges. Expand an issue to follow its linked PR or open a merge to see the work it delivered. For a manager, run `mise exec -- pnpm desk:project manager` to generate a standalone outcome brief from dated observations. [Refresh and evidence scope](reports/README.md#refresh-the-agentic-pm-desk).
 
-For work spread across local repositories, ordinary folders or Obsidian vaults, use the [private work desk](docs/private-workspace.md). Tell the agent a work update or ask it to organize a folder of existing notes. It keeps the originals, refreshes the affected Open Knowledge Format notes, and answers from the same records when you need a next action or a manager brief.
+## Start private work with one decision note
+
+Keep a Markdown note in a private folder or an existing Obsidian vault. Give your approved agent the note and the source folders it may read. The repositories and meeting notes can stay where they are. No agentic-pm installation is needed for this workflow.
+
+- **When a decision changes**, say “Friday is now the review. Delivery is undecided. Update my decision note with today's date, what this replaces, and what I should do next.”
+- **In a fresh chat**, say “Read my decision note and check the latest meeting notes and repository changes. Update the note, tell me what to do first, and draft three sentences I can give my manager.”
+
+In a [synthetic handoff](https://github.com/niikei/agentic-pm/issues/148), a fresh session read one note and two repositories, recovered a spoken correction, and kept an unrelated purchase out of the manager brief. Choose the [private work desk](docs/private-workspace.md) when you want to flag changes to cited files on refresh or regenerate a separate manager brief and a personal agenda from the same records.
 
 ## Try a daily plan in your own checkout
 
