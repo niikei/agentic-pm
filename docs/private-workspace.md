@@ -69,6 +69,12 @@ At the next check-in, `review` compares only cited files and names the items aff
 
 An existing OKF concept also works as a selected Markdown source. Read its body and relevant provenance, then preserve its original properties. Obsidian's [Properties documentation](https://obsidian.md/help/properties) describes Source mode for nested metadata such as the OKF source list.
 
+## Use a workbook or decision deck
+
+Select the actual workbook or slides in a registered folder. Ask the agent to read the workbook’s displayed values and formulas or the relevant slides using an approved reader. `inspect` records the file fingerprint. Keep a locator a colleague can reopen, such as “Participation, B4:D4, requested / confirmed / pending” or “Operating review, slide 2, approved pilot cap.” Folder `scan` inventories Markdown and text notes. Select Office files explicitly.
+
+When figures and authority come from different sources, capture a separate reportable statement for each. A revised workbook can then retire yesterday’s count while the approved scope remains available from the slides. After a same-name replacement, run `review PROJECT`, read the affected cells again and update the existing record using the new file receipt. Generate `manager PROJECT` again before handing it over.
+
 ## Speak a work update or organize existing notes
 
 Open the private desk as the agent workspace. If an older desk already has customized instructions, add one line to its private `AGENTS.md`: “Use `scan` for selected note folders and `capture` for work conversations, using the current checkout's private-workspace guide.” Tell the agent, for example, “The draft went out. Printing is probably 80 copies. Order after confirmation.” Later, “They confirmed 60 copies.” Ask “What should I do next?” or “Give me two sentences for my manager.” The agent interprets the conversation, updates the same item and publishes its OKF notes. Input can come from typing or the host's dictation. The CLI accepts the agent's interpretation as data.
