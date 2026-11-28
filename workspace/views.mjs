@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { renameSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { renderDesk } from "../reports/desk/html.mjs";
 import { buildDesk } from "../reports/desk/model.mjs";
 import { markdownText as md } from "../reports/writers/markdown.mjs";
@@ -8,7 +8,22 @@ import { forecastLabel, labels, meetingTime } from "./fields.mjs";
 import { sourceStatus } from "./sources.mjs";
 import { history, items, projects, transaction } from "./store.mjs";
 
+function nextActionWording(db, record, events, files) {
+  if (!record.nextAction) return record.nextAction;
+  const file = events.findLast(({ changes }) =>
+    Object.hasOwn(changes, "nextAction"),
+  )?.file;
+  if (!file) return record.nextAction;
+  const status = sourceStatus(db, record.project, file, files);
+  if (status === "current") return record.nextAction;
+  const name = basename(file.path);
+  return status === "changed"
+    ? `「${name}」が更新されています。内容を再確認してから次の行動を決める。`
+    : `「${name}」を参照できません。次の行動の根拠を確認する。`;
+}
+
 export function workDesk(db, project, asOf) {
+  const files = new Map();
   const names = new Map(projects(db).map((entry) => [entry.id, entry.name]));
   const records = items(db, project).filter(
     (record) => record.status !== "done" && record.status !== "reference",
@@ -31,7 +46,7 @@ export function workDesk(db, project, asOf) {
       stage: record.status,
       owners: [],
       dueDate: record.dueDate,
-      nextAction: record.nextAction,
+      nextAction: nextActionWording(db, record, events, files),
       question: record.question,
       needsDecision: Boolean(record.question),
       // A newer question can invalidate an earlier step. An explicit action

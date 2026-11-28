@@ -28,6 +28,8 @@ node trials/workweek/run.mjs score $trial wednesday
 
 Setup defaults to the fictional week starting 2026-11-30. An optional ISO Monday after the directory selects another week. Use the same date and a fresh folder for each client. Prompts establish fictional observation dates. The workspace's generated-at clock still shows actual time.
 
+For a comparison with and without the saved verbal correction, branch from Tuesday into the [late memo handoff](late-memo.md). Use a separate scratch trial for that variation.
+
 ## Finish the week
 
 From the operator checkout, reveal the Thursday inputs. This adds a synthetic retry-test CSV in a real local Git commit and a purchasing clarification in the notes folder. Only the scheduled source files are introduced. The next fresh chat receives the Thursday brief. This is the first time the operator supplies a recurring audience preference.
