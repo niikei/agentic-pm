@@ -31,7 +31,7 @@ function focusCard(desk) {
     return `<section class="focus"><h2>先に確認する</h2><div class="focus-meta">${h(pending.id)} ／ 要確認</div><h3>${h(pending.question ?? pending.title)}</h3><p>確認待ちの記録を開き、判断に必要な情報を確認する。</p><a class="source" href="${h(pending.url)}">確認事項を開く ↗</a></section>`;
   return `<section class="focus"><h2><span class="target" aria-hidden="true">◎</span> 次に取りかかる</h2>${
     task
-      ? `<div class="focus-meta">${h(task.id)} <i>／</i> ${stages[task.stage]} <i>／</i> ${due(task)}</div><h3>${h(task.title)}</h3><p>${h(task.nextAction)}</p>${desk.actionable.length > 1 ? `<small>${h(desk.nextReason)}</small> ` : ""}<a class="source" href="${h(task.url)}">元の記録を開く <span aria-hidden="true">↗</span></a>`
+      ? `<div class="focus-meta">${h(task.id)} <i>／</i> ${stages[task.stage]} <i>／</i> ${due(task)}</div><h3>${h(task.nextAction)}</h3>${task.title !== task.nextAction ? `<p>${h(task.title)}</p>` : ""}${desk.actionable.length > 1 ? `<small>${h(desk.nextReason)}</small> ` : ""}<a class="source" href="${h(task.url)}">元の記録を開く <span aria-hidden="true">↗</span></a>`
       : `<h3>次の作業は未確定</h3><p>着手できる状態と次の行動がそろった作業はありません。</p><a class="source" href="#tasks">一覧で記録を確認 ↓</a>`
   }</section>`;
 }
