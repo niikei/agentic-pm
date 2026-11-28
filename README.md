@@ -17,9 +17,11 @@ From a [configured checkout](#getting-started), run `mise exec -- pnpm desk:proj
 Keep a Markdown note in a private folder or an existing Obsidian vault. Give your approved agent the note and the source folders it may read. The repositories and meeting notes can stay where they are. No agentic-pm installation is needed for this workflow.
 
 - **When a decision changes**, say “Friday is now the review. Delivery is undecided. Update my decision note with today's date, what this replaces, and what I should do next.”
-- **In a fresh chat**, say “Read my decision note and check the latest meeting notes and repository changes. Update the note, tell me what to do first, and draft three sentences I can give my manager.”
+- **In a fresh chat**, ask “What should I start with today?” If you need a report, add “Check the latest records and draft three sentences for my manager.”
 
-In a [synthetic handoff](https://github.com/niikei/agentic-pm/issues/148), a fresh session read one note and two repositories, recovered a spoken correction, and kept an unrelated purchase out of the manager brief. Choose the [private work desk](docs/private-workspace.md) when you want to flag changes to cited files on refresh or regenerate a separate manager brief and a personal agenda from the same records.
+When updating the note, label suggested follow-ups as proposals. For example, “waiting for the supplier’s quote” records the current state. Logging its amount on arrival is a proposed action until someone agrees to it. [Morning handoff trial](https://github.com/niikei/agentic-pm/issues/150).
+
+Choose the [private work desk](docs/private-workspace.md) when you want to flag changes to cited files on refresh or regenerate a separate manager brief and a personal agenda from the same records. [Decision note and desk comparison](https://github.com/niikei/agentic-pm/issues/148).
 
 ## Try a daily plan in your own checkout
 
