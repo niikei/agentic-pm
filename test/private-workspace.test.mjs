@@ -418,6 +418,53 @@ test("a shared calendar supplies a zoned meeting without assigning a deadline or
   assert.doesNotMatch(managerBrief(db, undefined, asOf), /10:30/);
 });
 
+test("the personal desk checks the source of the next action independently of later updates", (t) => {
+  const { db, dir, desk } = fixture(t);
+  const source = join(dir, "Retry-check.csv");
+  register(db, "pilot", "Pilot", [dir]);
+  writeFileSync(source, "2,1,0");
+  const original = {
+    ...events[0],
+    file: inspectSource(db, source).file,
+    changes: {
+      title: "Review preparation",
+      status: "ready",
+      nextAction: "Report zero duplicates.",
+    },
+  };
+  applyEvents(db, [
+    original,
+    {
+      ...events[0],
+      event: "meeting-set",
+      base: 1,
+      changes: { summary: "Review tomorrow." },
+    },
+  ]);
+  const view = () => workDesk(db, "pilot", "2026-12-03T10:00:00Z");
+  assert.equal(view().next.nextAction, original.changes.nextAction);
+  writeFileSync(source, "2,2,1");
+  assert.match(agenda(view()), /Retry-check\.csv.*再確認/);
+  const html = readFileSync(publishView(db, desk, "desk", "pilot"), "utf8");
+  assert.ok(html.includes(`<h3>${view().next.nextAction}</h3>`));
+  assert.doesNotMatch(agenda(view()), /Report zero duplicates/);
+  rmSync(source);
+  assert.match(view().next.nextAction, /参照できません/);
+  writeFileSync(source, "2,1,0");
+  assert.equal(view().next.nextAction, original.changes.nextAction);
+  applyEvents(db, [
+    {
+      ...events[0],
+      event: "operator-action",
+      base: 2,
+      changes: { nextAction: "Ask the reviewer." },
+    },
+  ]);
+  rmSync(source);
+  assert.equal(view().next.nextAction, "Ask the reviewer.");
+  assert.equal(history(db, "pilot", original.item).length, 3);
+});
+
 test("manager regeneration withholds stale or missing evidence and lists affected items only to the operator", (t) => {
   const { dir, db } = fixture(t);
   register(db, "pilot", "試行", [dir]);

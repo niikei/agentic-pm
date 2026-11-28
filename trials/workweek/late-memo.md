@@ -40,3 +40,11 @@ Record each first answer before making repairs. Judge it against the evidence th
 - Rescan the selected notes, compare the originals with the controls, and check both Git heads and working trees. Repeating intake should preserve the decision without creating another task.
 
 Record separately what needed a transcript to be supplied again and what the desk could recover on its own. This comparison measures available evidence and output correctness. A colleague’s time saved requires participant observations.
+
+## Correct one repository after the handoff
+
+After saving the three original answers, close desk writers and make a separate copy of the desk. Keep its source locations available. In the synthetic relay repository, correct the same CSV row from two requests, one stored receipt and zero duplicates to two requests, two stored receipts and one duplicate. Commit only this correction. The screen repository, plain notes and verbal review decision remain as before.
+
+Before giving a new chat the correction, regenerate the copy’s `agenda pilot`, `desk pilot` and `manager pilot`. Inspect what happens to any current action or manager wording citing the changed CSV. A regenerated recommendation must avoid telling the operator to present the old count. A previously exported attachment remains a snapshot. If a single manager statement was anchored to the changed file, the whole statement may be withheld until reviewed.
+
+In a fresh chat on the copy, say that the relay team corrected a transcription error and ask for the next action and a new three-sentence manager attachment. Check the corrected count against the row: two requests, two stored receipts, one duplicate. Preserve the upcoming review and unknown delivery date. Verify the unchanged screen result, and check that a claim of zero duplicates does not survive in the current action or the new attachment.
