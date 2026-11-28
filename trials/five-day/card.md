@@ -2,6 +2,8 @@
 
 Keep this copy in the private desk. Pick three projects you already handle. The question for the week is whether maintaining a desk helps you choose what to do, recover a decision, or prepare a report worth sharing.
 
+Observation basis: **unspecified**. When starting a private copy, replace this value with **participant-reported** for a person’s own observations or **scripted rehearsal** for supplied test values. A person can use fictional project notes and still measure their own effort. Keep scripted rows in their own copy. If the basis is unspecified, describe the filled entries without counting them as measured days.
+
 ## In the morning
 
 On the first and fifth working days, first open a fresh session with only your ordinary source folders. Ask the morning question and keep its answer private. Then open a separate fresh session in the desk and ask the same question. On other days, start directly in the desk.
@@ -26,4 +28,4 @@ When recording feedback, update this private card only. Use the working day or d
 
 ## Decision after five working days
 
-Use the filled rows to identify one occasion where history helped, one where ordinary sources were enough, and the largest maintenance cost. If an observation is missing, record that limit. The participant chooses whether to continue, narrow use to a specific workflow, or stop. Any public summary uses only aggregates the participant chooses to disclose.
+State the observation basis and how many rows contain entries. Scripted rows demonstrate the recording process and count as zero participant days. Use participant-reported rows to identify one occasion where history helped, one where ordinary sources were enough, and the largest maintenance cost. If an observation is missing, record that limit. The participant chooses whether to continue, narrow use to a specific workflow, or stop. Any public summary uses only aggregates the participant chooses to disclose.
