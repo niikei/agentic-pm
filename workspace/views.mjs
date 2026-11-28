@@ -34,6 +34,13 @@ export function workDesk(db, project, asOf) {
       nextAction: record.nextAction,
       question: record.question,
       needsDecision: Boolean(record.question),
+      // A newer question can invalidate an earlier step. An explicit action
+      // recorded with or after that question can proceed while it stays open.
+      decisionBlocksAction:
+        Boolean(record.question) &&
+        events.findLastIndex(({ changes }) =>
+          Object.hasOwn(changes, "question"),
+        ) > events.findLastIndex(({ changes }) => changes.nextAction),
       meeting: record.meeting,
       meetingLabel: record.meeting && meetingTime(record.meeting),
       forecast: record.forecast && forecastLabel(record.forecast),

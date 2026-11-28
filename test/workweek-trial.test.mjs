@@ -178,6 +178,7 @@ test("the workplace trial scores the observable handoff and rejects a stale dead
         {
           ...changes(decision, "instructions", {
             title: "Prepare one-page instructions",
+            nextAction: "Draft the instructions while awaiting the reviewer.",
             status: "ready",
           }),
           observed: friday,

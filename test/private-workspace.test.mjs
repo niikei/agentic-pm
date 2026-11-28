@@ -193,11 +193,32 @@ test("desk, agenda, and manager views respect evidence, audience and project sco
   assert.doesNotMatch(managerBrief(db, "pilot", asOf), /12月2日|仮説のみ/);
   assert.equal(workDesk(db, "pilot", asOf).next, undefined);
   assert.match(agenda(workDesk(db, "pilot", asOf)), /仮説のみ/);
+  const nextAction = "回答を待つ間に初稿を作る";
+  applyEvents(db, [
+    {
+      ...events[0],
+      event: "draft-while-waiting",
+      base: 2,
+      changes: { nextAction },
+    },
+  ]);
+  const resumed = workDesk(db, "pilot", asOf);
+  assert.equal(resumed.next.nextAction, nextAction);
+  assert.equal(resumed.questions[0].question, "日程を再確認する");
+  assert.match(
+    agenda(resumed),
+    /次にやること\n\n[^\n]*回答を待つ間に初稿を作る/,
+  );
+  assert.ok(
+    readFileSync(publishView(db, dir, "desk", "pilot", asOf), "utf8").includes(
+      `<p>${nextAction}</p>`,
+    ),
+  );
   applyEvents(db, [
     {
       ...events[0],
       event: "result",
-      base: 2,
+      base: 3,
       changes: { status: "done", managerUpdate: "読み合わせが完了した。" },
     },
   ]);

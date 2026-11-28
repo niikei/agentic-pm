@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import { history, items, openWorkspace } from "../../workspace/store.mjs";
+import { workDesk } from "../../workspace/views.mjs";
 import { materials, newMaterials } from "./case.mjs";
 import { repositoryMatches } from "./fixture.mjs";
 
@@ -147,6 +148,9 @@ export function score(root, meta, days, phase, desk = join(root, "desk")) {
       } finally {
         original.close();
       }
+      checks.pilotActionOnDesk = Boolean(
+        workDesk(db, "pilot", `${days.nextMonday}T09:00:00+09:00`).next,
+      );
       const handover = join(desk, "handover-next.md");
       checks.operatorHandoff =
         existsSync(handover) && Boolean(readFileSync(handover, "utf8").trim());
