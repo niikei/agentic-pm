@@ -57,3 +57,7 @@ Record each answer before a repair. Inspect the desk's `agenda`, item histories,
 - For the persistent desk, verify one active printing task, an updated citation to the relocated note and retention of the earlier path in history. Check what the next scan asks the operator to review again.
 
 Count unplanned prompts and record any manual repairs separately. A source-only reader can answer correctly on these inputs. Compare what is retained and what has to be rediscovered. Treat any performance difference as specific to this case and these sessions.
+
+For a historical follow-up, open another fresh read-only chat in each arm. Ask whether December 4 was confirmed on November 30, with the evidence for each dated state. The ordinary folder has the November 27 proposal and the December 1 correction. The desk also had an opportunity to record the intervening November 30 confirmation before the file was overwritten. A versioned source folder with that revision available would be a different baseline.
+
+If a reconciled desk still lists the old training path as missing, keep that first scan as evidence. On a closed copy, tell a fresh operator which note you moved and ask it to clear the old reminder. Verify the next scan, the original history and the report again.
