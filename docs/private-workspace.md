@@ -136,4 +136,14 @@ For a native note table, create an [Obsidian Base](https://obsidian.md/help/base
 
 If you edit generated prose or its frontmatter and that record later changes, the command lists the conflict and returns status 2. A removed note also stays removed. Review a fresh `okf` snapshot alongside your edit. To accept its generated section, copy that section into the bound note, keep your own additions below it, and refresh again. Other records can still refresh. The index advances once its linked pages are ready. Finish edits to a generated note before refreshing it. If another writer interrupts a save, a `.save-…` folder can retain the original or proposed file for recovery.
 
-Close the CLI before copying the private workspace for backup. Restore the whole folder on a local disk with the same access restrictions. Use `items` and `history` to resume from another approved session.
+## Resume from a backup
+
+Close writers, copy the entire private desk and open the restored directory in a fresh session. Keep its access restrictions. The source locations stay registered at their original paths. Before the first update, run these commands against the copy.
+
+```powershell
+node workspace/cli.mjs $restored projects
+node workspace/cli.mjs $restored bundles
+node workspace/cli.mjs $restored agenda
+```
+
+Confirm the project roots are reachable and the bundle destinations are the ones you intend to update. The default project notes follow the copied desk. A separately bound Obsidian folder still points to the original vault, and `capture` can refresh it. For a recovery drill with that vault, inspect `items` and `history` and use `okf NEW_PRIVATE_DIRECTORY PROJECT` to preview the notes separately. Restore external vaults from their own backups when needed. Check links in hand-written reports if you moved the desk to a different directory hierarchy.

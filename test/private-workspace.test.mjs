@@ -211,7 +211,7 @@ test("desk, agenda, and manager views respect evidence, audience and project sco
   );
   assert.ok(
     readFileSync(publishView(db, dir, "desk", "pilot", asOf), "utf8").includes(
-      `<p>${nextAction}</p>`,
+      `<h3>${nextAction}</h3>`,
     ),
   );
   applyEvents(db, [
