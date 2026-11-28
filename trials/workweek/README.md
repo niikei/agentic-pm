@@ -80,8 +80,21 @@ For the remaining phases also check the following outcomes by reading the source
 | Recurring reader          | The complete file can be forwarded as written. It fits three plain-language sentences, covers both teams and leaves the operator’s personal next action in chat. Friday’s brief deliberately does not repeat Thursday’s prohibited engineering terms. |
 | Restored handoff          | The new operator can draft the instructions while waiting for the reviewer assignment. The quote is waiting on the supplier separately. Preserve Friday’s decisions and avoid reopening the completed retry test.                                     |
 
-The extended machine checks verify the staged Git change, citations to the CSV and review minutes, the intake routing, saved report files, explicit terminology and restoration of the original event histories. For Friday the scorer also flags more than three explicit Japanese sentence endings and known personal-appendix labels. Read the entire saved file for unlabeled asides or fragments, including whether the limited trial was mistaken for a production release.
+The extended machine checks verify the staged Git change, citations to the CSV and review minutes, the intake routing, saved report files, explicit terminology and restoration of the original event histories. For Friday the scorer also flags more than three explicit Japanese sentence endings and known personal-appendix labels. Read the entire saved file for unlabeled asides or fragments. Check the scope of every approval against the source minutes.
 
 Record client/surface, commit, scenario Monday, automated checks, reading judgments, number of **unplanned** operator prompts and a brief reason for each. Count a clarification, correction or manual repair separately from a routine tool approval. Record first-pass results before any repair. A cold handoff uses no Monday or Tuesday transcript. Local setup time, model time and human effort are separate observations. A solo synthetic trial cannot establish time saved in a managed workplace.
 
 The original scenario borrows two evaluation ideas: completing a cross-tool handoff and testing uncertainty with mixed sources. The public examples are [TheAgentCompany's engineering report task](https://github.com/TheAgentCompany/TheAgentCompany/tree/main/workspaces/tasks/pm-present-gitlab-info-as-ppt) and [Salesforce's HERB paper](https://aclanthology.org/2025.emnlp-industry.34/). Their corpora, graders and model services are not required.
+
+## Test a delayed restart
+
+To test recovery across actual elapsed time, start a separate scratch desk with one cited note, one manager statement and one personal paragraph appended to its generated OKF page. Record the start time. Close the CLI between observations. Keep the synthetic source and the desk on a private filesystem.
+
+| Elapsed minutes | Change to make                                 | What to verify in a new process                                                                    |
+| --------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 0               | Capture the original decision.                 | The current statement is eligible for the manager report.                                          |
+| 45, 90          | Move the source aside, then restore it at 90.  | The statement disappears, then returns.                                                            |
+| 135, 155        | Edit the decision, then review it at 155.      | The old wording disappears. The new wording needs a dated correction and a current source receipt. |
+| 180             | Reopen the desk and restore a whole-desk copy. | The corrected statement and the hand-written paragraph survive.                                    |
+
+At each checkpoint, retry the original event with its original ID, inspect the revision count and reopen a closed copy. A retry should preserve the latest decision. Record actual timestamps and any missed observations separately from the fictional case dates. The [backup procedure](../../docs/private-workspace.md#resume-from-a-backup) covers separately linked vaults.
