@@ -190,6 +190,13 @@ test("the workplace trial scores the observable handoff and rejects a stale dead
     assert.equal(score("friday", 1).readerPreference, false);
     writeFileSync(
       report,
+      "試験済みです。25人までです。納品日は未定です。\n\n自分の次の一手は手順作成です。",
+    );
+    const withAppendix = score("friday", 1);
+    assert.equal(withAppendix.personalAppendixOmitted, false);
+    assert.equal(withAppendix.reportLength, false);
+    writeFileSync(
+      report,
       "限定試行は25人まで認められました。全面展開と納品日は未定です。",
     );
     score("friday", 0);

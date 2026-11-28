@@ -113,9 +113,16 @@ export function score(root, meta, days, phase, desk = join(root, "desk")) {
     }
     if (phase === "friday") {
       const report = join(desk, "friday-report.md");
+      const text = existsSync(report)
+        ? readFileSync(report, "utf8").trim()
+        : "";
       checks.readerPreference =
-        existsSync(report) &&
-        !/\b(?:main|API)\b|コミット/i.test(readFileSync(report, "utf8"));
+        Boolean(text) && !/\b(?:main|API)\b|コミット/i.test(text);
+      // Count explicit Japanese sentence endings; the read-through also catches fragments.
+      checks.reportLength =
+        Boolean(text) && (text.match(/[。！？]+/gu)?.length ?? 0) <= 3;
+      checks.personalAppendixOmitted =
+        Boolean(text) && !/自分(?:用|向け|の次の一手)/u.test(text);
     }
     if (phase === "next-monday") {
       const original = openWorkspace(join(root, "desk"));
