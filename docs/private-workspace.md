@@ -30,6 +30,19 @@ Use only directories approved for the selected AI session. Select a single note,
 
 Open the private workspace folder in your approved agent. Initialization writes a local `AGENTS.md` with the CLI path and recovery commands. In a tool that reads this file automatically, start with “What should I work on today?” In another tool, select that file as context. For an older workspace, run `node workspace/cli.mjs $desk guide` once. The command preserves an existing guide. After moving the software checkout, update the CLI path in your private guide.
 
+## Try the desk for five working days
+
+Use the [participant card](../trials/five-day/card.md) to compare an ordinary morning with a desk-assisted one. From the installed source directory, copy the blank card once into your initialized private desk. In PowerShell, this copy preserves an existing card by refusing to overwrite it.
+
+```powershell
+$card = Join-Path $desk 'five-day-pilot.md'
+if (-not (Test-Path -LiteralPath $card)) {
+  [IO.File]::Copy((Resolve-Path 'trials/five-day/card.md').Path, $card, $false)
+}
+```
+
+Open the private copy on the first morning. You can dictate the day's observations in one sentence. Keep the card in the desk so note intake leaves it alone. The [pilot issue](https://github.com/niikei/agentic-pm/issues/143) tracks the field decision.
+
 ## Capture a change
 
 Tell the agent what happened. For example, “From today's pilot minutes, the reading session is confirmed for December 2. Draft the instructions first. Half a day is my estimate.” The agent reads the selected evidence in an approved environment, checks current items, and prepares an update file in the private workspace. For a pasted calendar or image, identify the event and its date or ask for the unreadable detail. The CLI accepts structured updates from an agent or a person.
