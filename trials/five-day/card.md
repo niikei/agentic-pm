@@ -6,7 +6,7 @@ Keep this copy in the private desk. Pick three projects you already handle. The 
 
 On the first and fifth working days, first open a fresh session with only your ordinary source folders. Ask the morning question and keep its answer private. Then open a separate fresh session in the desk and ask the same question. On other days, start directly in the desk.
 
-> 今日最初にやることと、その期限は？　誰の何の返事を待っている？　上司にそのまま渡せる進捗を3文以内で。送信は不要です。
+> まず私向けに、今日最初にやることと期限、誰の何の返事を待っているかを教えて。その下に「上司向け」と見出しを付け、3案件の進捗をそのまま渡せる文章にしてください。上司向けの本文は3文以内。送信は不要です。
 
 Use the language and length your manager expects. During the week, try a correction to an earlier decision and a note move when either arises. For a rehearsal you can use synthetic notes. Leave a scenario unobserved if it never occurred in real use.
 
