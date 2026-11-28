@@ -1,5 +1,7 @@
 # A private work desk for scattered projects
 
+For a daily plan or a short manager update, [start with one private decision note](../README.md#start-private-work-with-one-decision-note). The desk below adds source-change checks and separate views you can regenerate from the same records.
+
 Keep each repository, shared folder and Obsidian vault where it already lives. A project has a short ID and can refer to several directories. Projects can share a vault. Registering a directory records its location. The CLI reads selected update files and writes to a separate private workspace. GitHub issues remain authoritative for work tracked on GitHub.
 
 Try the [workplace trial and weekly recovery](../trials/workweek/README.md) with synthetic records before connecting an employer’s sources. The [existing-notes trial](../trials/existing-notes/README.md) compares a cold source-only answer with the next morning’s desk after a correction and a file move.
